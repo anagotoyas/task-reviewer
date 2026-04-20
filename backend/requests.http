@@ -1,0 +1,180 @@
+### Variables - Reemplazar con valores reales
+@baseUrl = http://localhost:3000/api
+@adminToken = REPLACE_WITH_TOKEN
+@teacherToken = REPLACE_WITH_TOKEN
+@studentToken = REPLACE_WITH_TOKEN
+
+### ===== AUTH =====
+
+### Login admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@myspace.com",
+  "password": "Admin1234!"
+}
+
+### Refresh token
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "refreshToken": "REPLACE_WITH_REFRESH_TOKEN"
+}
+
+### Logout
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{adminToken}}
+
+### ===== ROLES =====
+
+### Listar roles
+GET {{baseUrl}}/roles
+Authorization: Bearer {{adminToken}}
+
+### ===== USERS =====
+
+### Crear teacher
+POST {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "María",
+  "lastname": "García",
+  "email": "teacher@myspace.com",
+  "password": "Teacher123!",
+  "roleId": "REPLACE_WITH_TEACHER_ROLE_ID"
+}
+
+### Crear student
+POST {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Juan",
+  "lastname": "Pérez",
+  "email": "student@myspace.com",
+  "password": "Student123!",
+  "roleId": "REPLACE_WITH_STUDENT_ROLE_ID"
+}
+
+### Listar usuarios
+GET {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+
+### ===== COURSES =====
+
+### Crear curso
+POST {{baseUrl}}/courses
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Matemáticas 101",
+  "teacherId": "REPLACE_WITH_TEACHER_ID"
+}
+
+### Asignar estudiantes
+POST {{baseUrl}}/courses/REPLACE_WITH_COURSE_ID/students
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "studentIds": ["REPLACE_WITH_STUDENT_ID"]
+}
+
+### Listar cursos (como teacher)
+GET {{baseUrl}}/courses
+Authorization: Bearer {{teacherToken}}
+
+### ===== RUBRICS =====
+
+### Crear rúbrica
+POST {{baseUrl}}/rubrics
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "name": "Rúbrica de presentación oral",
+  "description": "Evalúa presentaciones orales en video",
+  "criteria": [
+    {
+      "name": "Claridad",
+      "description": "Claridad en la exposición",
+      "orderIndex": 0,
+      "levelDescriptors": [
+        { "level": "AD", "description": "Exposición excepcionalmente clara y estructurada" },
+        { "level": "A", "description": "Exposición clara y bien organizada" },
+        { "level": "B", "description": "Exposición comprensible con algunas inconsistencias" },
+        { "level": "C", "description": "Exposición confusa o desorganizada" }
+      ]
+    }
+  ]
+}
+
+### ===== HOMEWORKS =====
+
+### Crear tarea individual
+POST {{baseUrl}}/homeworks
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "courseId": "REPLACE_WITH_COURSE_ID",
+  "rubricId": "REPLACE_WITH_RUBRIC_ID",
+  "name": "Presentación final",
+  "description": "Sube un video con tu presentación",
+  "isGroup": false,
+  "startDate": "2025-05-01T00:00:00Z",
+  "endDate": "2025-05-31T23:59:59Z",
+  "status": "published"
+}
+
+### Crear grupo para tarea grupal
+POST {{baseUrl}}/homeworks/REPLACE_WITH_HOMEWORK_ID/groups
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "name": "Grupo A",
+  "studentIds": ["REPLACE_WITH_STUDENT_ID"]
+}
+
+### ===== SUBMISSIONS =====
+
+### Subir entrega individual
+POST {{baseUrl}}/submissions
+Content-Type: application/json
+Authorization: Bearer {{studentToken}}
+
+{
+  "homeworkId": "REPLACE_WITH_HOMEWORK_ID",
+  "videoUrl": "https://example.com/video.mp4"
+}
+
+### Iniciar revisión
+POST {{baseUrl}}/submissions/REPLACE_WITH_SUBMISSION_ID/start-review
+Authorization: Bearer {{teacherToken}}
+
+### Confirmar notas
+PATCH {{baseUrl}}/submissions/REPLACE_WITH_SUBMISSION_ID/review
+Content-Type: application/json
+Authorization: Bearer {{teacherToken}}
+
+{
+  "evaluations": [
+    {
+      "criterionId": "REPLACE_WITH_CRITERION_ID",
+      "finalLevel": "A",
+      "finalReasoning": "Buena presentación con claridad aceptable"
+    }
+  ]
+}
+
+### Ver mi entrega (student)
+GET {{baseUrl}}/submissions/REPLACE_WITH_SUBMISSION_ID
+Authorization: Bearer {{studentToken}}

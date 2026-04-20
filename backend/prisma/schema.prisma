@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PerformanceLevel {
+  AD
+  A
+  B
+  C
+}
+
+enum HomeworkStatus {
+  draft
+  published
+  closed
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  createdUser String?  @map("created_user") @db.Uuid
+  updatedUser String?  @map("updated_user") @db.Uuid
+  state       Int      @default(1)
+
+  users User[]
+
+  @@map("role")
+}
+
+model User {
+  id                 String    @id @default(uuid()) @db.Uuid
+  name               String
+  lastname           String
+  email              String    @unique
+  password           String
+  roleId             String    @map("role_id") @db.Uuid
+  hashedRefreshToken String?   @map("hashed_refresh_token")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime? @updatedAt @map("updated_at") @db.Timestamptz
+  createdUser        String?   @map("created_user") @db.Uuid
+  updatedUser        String?   @map("updated_user") @db.Uuid
+  state              Int       @default(1)
+
+  role             Role                  @relation(fields: [roleId], references: [id])
+  taughtCourses    Course[]              @relation("TeacherCourses")
+  enrolledCourses  CourseStudent[]
+  rubrics          Rubric[]
+  submissions      Submission[]
+  groupMemberships HomeworkGroupMember[]
+
+  @@map("user")
+}
+
+model Course {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  teacherId   String    @map("teacher_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamptz
+  createdUser String?   @map("created_user") @db.Uuid
+  updatedUser String?   @map("updated_user") @db.Uuid
+  state       Int       @default(1)
+
+  teacher   User            @relation("TeacherCourses", fields: [teacherId], references: [id])
+  students  CourseStudent[]
+  homeworks Homework[]
+
+  @@map("course")
+}
+
+model CourseStudent {
+  id         String   @id @default(uuid())
+  courseId   String   @map("course_id") @db.Uuid
+  studentId  String   @map("student_id") @db.Uuid
+  enrolledAt DateTime @default(now()) @map("enrolled_at") @db.Timestamptz
+  state      Int      @default(1)
+
+  course  Course @relation(fields: [courseId], references: [id])
+  student User   @relation(fields: [studentId], references: [id])
+
+  @@unique([courseId, studentId])
+  @@map("course_student")
+}
+
+model Rubric {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  description String?   @db.Text
+  ownerId     String    @map("owner_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime? @updatedAt @map("updated_at") @db.Timestamptz
+  state       Int       @default(1)
+
+  owner     User              @relation(fields: [ownerId], references: [id])
+  criteria  RubricCriterion[]
+  homeworks Homework[]
+
+  @@map("rubric")
+}
+
+model RubricCriterion {
+  id          String  @id @default(uuid()) @db.Uuid
+  rubricId    String  @map("rubric_id") @db.Uuid
+  name        String
+  description String? @db.Text
+  orderIndex  Int     @map("order_index")
+  state       Int     @default(1)
+
+  rubric           Rubric                           @relation(fields: [rubricId], references: [id])
+  levelDescriptors RubricCriterionLevelDescriptor[]
+  evaluations      SubmissionCriterionEvaluation[]
+
+  @@map("rubric_criterion")
+}
+
+model RubricCriterionLevelDescriptor {
+  id          String           @id @default(uuid()) @db.Uuid
+  criterionId String           @map("criterion_id") @db.Uuid
+  level       PerformanceLevel
+  description String           @db.Text
+
+  criterion RubricCriterion @relation(fields: [criterionId], references: [id])
+
+  @@unique([criterionId, level])
+  @@map("rubric_criterion_level_descriptor")
+}
+
+model Homework {
+  id          String         @id @default(uuid()) @db.Uuid
+  courseId    String         @map("course_id") @db.Uuid
+  rubricId    String         @map("rubric_id") @db.Uuid
+  name        String
+  description String         @db.Text
+  isGroup     Boolean        @default(false) @map("is_group")
+  startDate   DateTime       @map("start_date") @db.Timestamptz
+  endDate     DateTime       @map("end_date") @db.Timestamptz
+  status      HomeworkStatus @default(draft)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime?      @updatedAt @map("updated_at") @db.Timestamptz
+  createdUser String?        @map("created_user") @db.Uuid
+  updatedUser String?        @map("updated_user") @db.Uuid
+  state       Int            @default(1)
+
+  course      Course          @relation(fields: [courseId], references: [id])
+  rubric      Rubric          @relation(fields: [rubricId], references: [id])
+  groups      HomeworkGroup[]
+  submissions Submission[]
+
+  @@map("homework")
+}
+
+model HomeworkGroup {
+  id         String   @id @default(uuid()) @db.Uuid
+  homeworkId String   @map("homework_id") @db.Uuid
+  name       String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  state      Int      @default(1)
+
+  homework    Homework              @relation(fields: [homeworkId], references: [id])
+  members     HomeworkGroupMember[]
+  submissions Submission[]
+
+  @@map("homework_group")
+}
+
+model HomeworkGroupMember {
+  id        String @id @default(uuid()) @db.Uuid
+  groupId   String @map("group_id") @db.Uuid
+  studentId String @map("student_id") @db.Uuid
+
+  group   HomeworkGroup @relation(fields: [groupId], references: [id])
+  student User          @relation(fields: [studentId], references: [id])
+
+  @@unique([groupId, studentId])
+  @@map("homework_group_member")
+}
+
+model Submission {
+  id                    String    @id @default(uuid()) @db.Uuid
+  homeworkId            String    @map("homework_id") @db.Uuid
+  studentId             String?   @map("student_id") @db.Uuid
+  groupId               String?   @map("group_id") @db.Uuid
+  videoUrl              String    @map("video_url")
+  submittedAt           DateTime  @default(now()) @map("submitted_at") @db.Timestamptz
+  reviewStartedAt       DateTime? @map("review_started_at") @db.Timestamptz
+  reviewSubmittedAt     DateTime? @map("review_submitted_at") @db.Timestamptz
+  reviewDurationSeconds Int?      @map("review_duration_seconds")
+  aiEvaluatedAt         DateTime? @map("ai_evaluated_at") @db.Timestamptz
+  teacherReviewed       Boolean   @default(false) @map("teacher_reviewed")
+  state                 Int       @default(1)
+
+  homework    Homework                        @relation(fields: [homeworkId], references: [id])
+  student     User?                           @relation(fields: [studentId], references: [id])
+  group       HomeworkGroup?                  @relation(fields: [groupId], references: [id])
+  evaluations SubmissionCriterionEvaluation[]
+
+  @@map("submission")
+}
+
+model SubmissionCriterionEvaluation {
+  id              String            @id @default(uuid()) @db.Uuid
+  submissionId    String            @map("submission_id") @db.Uuid
+  criterionId     String            @map("criterion_id") @db.Uuid
+  aiLevel         PerformanceLevel? @map("ai_level")
+  aiReasoning     String?           @map("ai_reasoning") @db.Text
+  aiGeneratedAt   DateTime?         @map("ai_generated_at") @db.Timestamptz
+  finalLevel      PerformanceLevel  @map("final_level")
+  finalReasoning  String            @map("final_reasoning") @db.Text
+  editedByTeacher Boolean           @default(false) @map("edited_by_teacher")
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime?         @updatedAt @map("updated_at") @db.Timestamptz
+
+  submission Submission      @relation(fields: [submissionId], references: [id])
+  criterion  RubricCriterion @relation(fields: [criterionId], references: [id])
+
+  @@unique([submissionId, criterionId])
+  @@map("submission_criterion_evaluation")
+}
