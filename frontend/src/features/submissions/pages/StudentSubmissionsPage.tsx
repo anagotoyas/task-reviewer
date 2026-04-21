@@ -13,12 +13,13 @@ import {
   Anchor,
   Tabs,
 } from '@mantine/core';
-import { IconUpload, IconBook, IconVideo, IconCheck } from '@tabler/icons-react';
+import { IconUpload, IconBook, IconVideo, IconCheck, IconChartBar } from '@tabler/icons-react';
 import { useHomeworks } from '@/features/homeworks/hooks/useHomeworks';
 import { useSubmissions } from '@/features/submissions/hooks/useSubmissions';
 import { SubmitHomeworkModal } from '@/features/submissions/components/SubmitHomeworkModal';
 import { RubricViewDrawer } from '@/features/submissions/components/RubricViewDrawer';
-import { Homework, Submission } from '@/types';
+import { SubmissionResultDrawer } from '@/features/submissions/components/SubmissionResultDrawer';
+import { Homework } from '@/types';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-PE', {
@@ -42,6 +43,7 @@ export function StudentSubmissionsPage() {
   const [submitHomework, setSubmitHomework] = useState<Homework | null>(null);
   const [rubricHomeworkId, setRubricHomeworkId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [resultSubmissionId, setResultSubmissionId] = useState<string | null>(null);
 
   const submittedHomeworkIds = new Set(submissions?.map((s) => s.homeworkId) ?? []);
 
@@ -152,8 +154,8 @@ export function StudentSubmissionsPage() {
                   <Table.Th>Curso</Table.Th>
                   <Table.Th>Video</Table.Th>
                   <Table.Th>Entregado</Table.Th>
-                  <Table.Th>Revisado</Table.Th>
-                  <Table.Th>Resultado</Table.Th>
+                  <Table.Th>Estado</Table.Th>
+                  <Table.Th>Calificación</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -167,7 +169,7 @@ export function StudentSubmissionsPage() {
                       <Anchor href={sub.videoUrl} target="_blank" size="sm">
                         <Group gap={4}>
                           <IconVideo size={14} />
-                          Ver video
+                          Ver
                         </Group>
                       </Anchor>
                     </Table.Td>
@@ -186,15 +188,25 @@ export function StudentSubmissionsPage() {
                       )}
                     </Table.Td>
                     <Table.Td>
-                      {sub.teacherReviewed && sub.evaluations && sub.evaluations.length > 0 ? (
-                        <Group gap={4}>
-                          {sub.evaluations.map((ev) => (
+                      {sub.teacherReviewed ? (
+                        <Group gap={6}>
+                          {sub.evaluations?.map((ev) => (
                             <Tooltip key={ev.id} label={ev.criterion?.name ?? ''}>
                               <Badge color={levelColor[ev.finalLevel]} variant="filled" size="sm">
                                 {ev.finalLevel}
                               </Badge>
                             </Tooltip>
                           ))}
+                          <Tooltip label="Ver detalle">
+                            <ActionIcon
+                              variant="subtle"
+                              color="violet"
+                              size="sm"
+                              onClick={() => setResultSubmissionId(sub.id)}
+                            >
+                              <IconChartBar size={15} />
+                            </ActionIcon>
+                          </Tooltip>
                         </Group>
                       ) : (
                         <Text size="sm" c="dimmed">—</Text>
@@ -218,6 +230,12 @@ export function StudentSubmissionsPage() {
         homeworkId={rubricHomeworkId}
         opened={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+      />
+
+      <SubmissionResultDrawer
+        submissionId={resultSubmissionId}
+        opened={!!resultSubmissionId}
+        onClose={() => setResultSubmissionId(null)}
       />
     </Stack>
   );
