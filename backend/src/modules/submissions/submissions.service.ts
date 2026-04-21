@@ -3,14 +3,21 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { ReviewSubmissionDto } from './dto/review-submission.dto';
+import { GeminiService } from './gemini.service';
 
 @Injectable()
 export class SubmissionsService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(SubmissionsService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private gemini: GeminiService,
+  ) {}
 
   async create(dto: CreateSubmissionDto, studentId: string) {
     const homework = await this.prisma.homework.findFirst({
@@ -19,13 +26,11 @@ export class SubmissionsService {
     });
     if (!homework) throw new NotFoundException('Homework not found or not published');
 
-    // Check student is enrolled
     const enrolled = await this.prisma.courseStudent.findFirst({
       where: { courseId: homework.courseId, studentId, state: 1 },
     });
     if (!enrolled) throw new ForbiddenException('Not enrolled in this course');
 
-    // XOR: must have exactly one of studentId (individual) or groupId (group)
     if (homework.isGroup && !dto.groupId)
       throw new BadRequestException('Group homework requires a groupId');
     if (!homework.isGroup && dto.groupId)
@@ -57,7 +62,79 @@ export class SubmissionsService {
       include: { homework: true, student: true, group: true },
     });
 
+    // Run AI evaluation in background — don't block the response
+    this.runAiEvaluation(submission.id).catch((err) =>
+      this.logger.error(`AI evaluation failed for submission ${submission.id}`, err),
+    );
+
     return { message: 'Submission created', data: submission };
+  }
+
+  async runAiEvaluation(submissionId: string): Promise<void> {
+    const submission = await this.prisma.submission.findFirst({
+      where: { id: submissionId, state: 1 },
+      include: {
+        homework: {
+          include: {
+            rubric: {
+              include: {
+                criteria: {
+                  where: { state: 1 },
+                  include: { levelDescriptors: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!submission) throw new NotFoundException('Submission not found');
+
+    const criteria = submission.homework.rubric.criteria;
+    const results = await this.gemini.evaluateVideo(
+      submission.videoUrl,
+      submission.homework.rubric.name,
+      criteria,
+    );
+
+    const now = new Date();
+
+    await Promise.all(
+      results.map((r) =>
+        this.prisma.submissionCriterionEvaluation.upsert({
+          where: {
+            submissionId_criterionId: {
+              submissionId,
+              criterionId: r.criterionId,
+            },
+          },
+          update: {
+            aiLevel: r.level,
+            aiReasoning: r.reasoning,
+            aiGeneratedAt: now,
+          },
+          create: {
+            submissionId,
+            criterionId: r.criterionId,
+            aiLevel: r.level,
+            aiReasoning: r.reasoning,
+            aiGeneratedAt: now,
+            // finalLevel/finalReasoning will be set by teacher on review
+            finalLevel: r.level,
+            finalReasoning: r.reasoning,
+            editedByTeacher: false,
+          },
+        }),
+      ),
+    );
+
+    await this.prisma.submission.update({
+      where: { id: submissionId },
+      data: { aiEvaluatedAt: now },
+    });
+
+    this.logger.log(`AI evaluation completed for submission ${submissionId}`);
   }
 
   async findAll(user: { id: string; role: string }) {
@@ -85,6 +162,7 @@ export class SubmissionsService {
         group: true,
         evaluations: { include: { criterion: true } },
       },
+      orderBy: { submittedAt: 'desc' },
     });
 
     return { message: 'Submissions retrieved', data: submissions };
@@ -94,27 +172,36 @@ export class SubmissionsService {
     const submission = await this.prisma.submission.findFirst({
       where: { id, state: 1 },
       include: {
-        homework: { include: { course: true } },
+        homework: {
+          include: {
+            course: true,
+            rubric: {
+              include: {
+                criteria: {
+                  where: { state: 1 },
+                  include: { levelDescriptors: true },
+                },
+              },
+            },
+          },
+        },
         student: true,
-        group: { include: { members: true } },
+        group: { include: { members: { include: { student: true } } } },
         evaluations: { include: { criterion: true } },
       },
     });
     if (!submission) throw new NotFoundException('Submission not found');
 
     if (user.role === 'student') {
-      const isOwner = submission.studentId === user.id ||
+      const isOwner =
+        submission.studentId === user.id ||
         submission.group?.members.some((m) => m.studentId === user.id);
       if (!isOwner) throw new ForbiddenException();
-      // Only show evaluations if teacher_reviewed
-      if (!submission.teacherReviewed) {
-        submission.evaluations = [];
-      }
+      if (!submission.teacherReviewed) submission.evaluations = [];
     }
 
     if (user.role === 'teacher') {
-      if (submission.homework.course.teacherId !== user.id)
-        throw new ForbiddenException();
+      if (submission.homework.course.teacherId !== user.id) throw new ForbiddenException();
     }
 
     return { message: 'Submission retrieved', data: submission };
@@ -128,18 +215,16 @@ export class SubmissionsService {
       },
     });
     if (!submission) throw new NotFoundException('Submission not found');
-    if (submission.homework.course.teacherId !== teacherId)
-      throw new ForbiddenException();
+    if (submission.homework.course.teacherId !== teacherId) throw new ForbiddenException();
 
     const criterionIds = submission.homework.rubric.criteria.map((c) => c.id);
     const providedIds = dto.evaluations.map((e) => e.criterionId);
 
-    // All criteria must be evaluated
-    const missing = criterionIds.filter((id) => !providedIds.includes(id));
+    const missing = criterionIds.filter((cid) => !providedIds.includes(cid));
     if (missing.length > 0)
       throw new BadRequestException(`Missing evaluations for criteria: ${missing.join(', ')}`);
 
-    const extra = providedIds.filter((id) => !criterionIds.includes(id));
+    const extra = providedIds.filter((cid) => !criterionIds.includes(cid));
     if (extra.length > 0)
       throw new BadRequestException(`Invalid criteria IDs: ${extra.join(', ')}`);
 
@@ -147,33 +232,28 @@ export class SubmissionsService {
     const reviewStarted = submission.reviewStartedAt ?? now;
     const durationSeconds = Math.floor((now.getTime() - reviewStarted.getTime()) / 1000);
 
-    // Upsert each evaluation
     await Promise.all(
       dto.evaluations.map((ev) =>
         this.prisma.submissionCriterionEvaluation.upsert({
           where: {
-            submissionId_criterionId: {
-              submissionId: id,
-              criterionId: ev.criterionId,
-            },
+            submissionId_criterionId: { submissionId: id, criterionId: ev.criterionId },
           },
           update: {
             finalLevel: ev.finalLevel,
             finalReasoning: ev.finalReasoning,
-            editedByTeacher: true,
+            editedByTeacher: ev.editedByTeacher ?? true,
           },
           create: {
             submissionId: id,
             criterionId: ev.criterionId,
             finalLevel: ev.finalLevel,
             finalReasoning: ev.finalReasoning,
-            editedByTeacher: true,
+            editedByTeacher: ev.editedByTeacher ?? true,
           },
         }),
       ),
     );
 
-    // Update submission review timestamps
     const updated = await this.prisma.submission.update({
       where: { id },
       data: {
@@ -196,8 +276,7 @@ export class SubmissionsService {
       include: { homework: { include: { course: true } } },
     });
     if (!submission) throw new NotFoundException('Submission not found');
-    if (submission.homework.course.teacherId !== teacherId)
-      throw new ForbiddenException();
+    if (submission.homework.course.teacherId !== teacherId) throw new ForbiddenException();
 
     const updated = await this.prisma.submission.update({
       where: { id },
@@ -205,5 +284,23 @@ export class SubmissionsService {
     });
 
     return { message: 'Review started', data: updated };
+  }
+
+  async retryAiEvaluation(id: string, teacherId: string) {
+    const submission = await this.prisma.submission.findFirst({
+      where: { id, state: 1 },
+      include: { homework: { include: { course: true } } },
+    });
+    if (!submission) throw new NotFoundException('Submission not found');
+    if (submission.homework.course.teacherId !== teacherId) throw new ForbiddenException();
+
+    await this.runAiEvaluation(id);
+
+    const updated = await this.prisma.submission.findFirst({
+      where: { id },
+      include: { evaluations: { include: { criterion: true } } },
+    });
+
+    return { message: 'AI evaluation completed', data: updated };
   }
 }

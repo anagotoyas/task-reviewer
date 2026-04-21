@@ -72,6 +72,7 @@ export interface Submission {
   videoUrl: string;
   submittedAt: string;
   teacherReviewed: boolean;
+  aiEvaluatedAt?: string;
   reviewStartedAt?: string;
   reviewSubmittedAt?: string;
   reviewDurationSeconds?: number;
@@ -85,6 +86,9 @@ export interface CriterionEvaluation {
   id: string;
   submissionId: string;
   criterionId: string;
+  aiLevel?: PerformanceLevel;
+  aiReasoning?: string;
+  aiGeneratedAt?: string;
   finalLevel: PerformanceLevel;
   finalReasoning: string;
   editedByTeacher: boolean;

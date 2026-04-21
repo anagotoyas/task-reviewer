@@ -52,4 +52,10 @@ export class SubmissionsController {
   ) {
     return this.submissionsService.review(id, dto, user.id);
   }
+
+  @Roles('teacher')
+  @Post(':id/retry-ai')
+  retryAi(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: any) {
+    return this.submissionsService.retryAiEvaluation(id, user.id);
+  }
 }

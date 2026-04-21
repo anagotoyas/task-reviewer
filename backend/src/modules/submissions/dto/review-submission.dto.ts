@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
@@ -17,6 +18,10 @@ export class CriterionEvaluationDto {
 
   @IsString()
   finalReasoning: string;
+
+  @IsOptional()
+  @IsBoolean()
+  editedByTeacher?: boolean;
 }
 
 export class ReviewSubmissionDto {

@@ -1,10 +1,21 @@
 import { apiClient } from '@/lib/api-client';
-import { ApiResponse, Submission } from '@/types';
+import { ApiResponse, PerformanceLevel, Submission } from '@/types';
 
 export interface CreateSubmissionPayload {
   homeworkId: string;
   groupId?: string;
   videoUrl: string;
+}
+
+export interface CriterionEvaluationPayload {
+  criterionId: string;
+  finalLevel: PerformanceLevel;
+  finalReasoning: string;
+  editedByTeacher?: boolean;
+}
+
+export interface ReviewSubmissionPayload {
+  evaluations: CriterionEvaluationPayload[];
 }
 
 export async function getSubmissions(): Promise<Submission[]> {
@@ -19,6 +30,21 @@ export async function getSubmission(id: string): Promise<Submission> {
 
 export async function createSubmission(payload: CreateSubmissionPayload): Promise<Submission> {
   const { data } = await apiClient.post<ApiResponse<Submission>>('/submissions', payload);
+  return data.data;
+}
+
+export async function startReview(id: string): Promise<Submission> {
+  const { data } = await apiClient.post<ApiResponse<Submission>>(`/submissions/${id}/start-review`);
+  return data.data;
+}
+
+export async function reviewSubmission(id: string, payload: ReviewSubmissionPayload): Promise<Submission> {
+  const { data } = await apiClient.patch<ApiResponse<Submission>>(`/submissions/${id}/review`, payload);
+  return data.data;
+}
+
+export async function retryAiEvaluation(id: string): Promise<Submission> {
+  const { data } = await apiClient.post<ApiResponse<Submission>>(`/submissions/${id}/retry-ai`);
   return data.data;
 }
 
