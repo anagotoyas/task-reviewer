@@ -75,6 +75,9 @@ export interface Submission {
   reviewStartedAt?: string;
   reviewSubmittedAt?: string;
   reviewDurationSeconds?: number;
+  homework?: Homework & { course?: Course };
+  student?: User;
+  group?: HomeworkGroup;
   evaluations?: CriterionEvaluation[];
 }
 

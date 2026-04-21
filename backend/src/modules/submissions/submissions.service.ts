@@ -80,7 +80,7 @@ export class SubmissionsService {
     const submissions = await this.prisma.submission.findMany({
       where,
       include: {
-        homework: true,
+        homework: { include: { course: true } },
         student: true,
         group: true,
         evaluations: { include: { criterion: true } },

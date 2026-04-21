@@ -26,6 +26,11 @@ export async function getHomeworks(): Promise<Homework[]> {
   return data.data;
 }
 
+export async function getHomework(id: string): Promise<Homework> {
+  const { data } = await apiClient.get<ApiResponse<Homework>>(`/homeworks/${id}`);
+  return data.data;
+}
+
 export async function createHomework(payload: CreateHomeworkPayload): Promise<Homework> {
   const { data } = await apiClient.post<ApiResponse<Homework>>('/homeworks', payload);
   return data.data;

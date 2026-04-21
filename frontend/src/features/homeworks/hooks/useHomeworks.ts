@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
 import {
   getHomeworks,
+  getHomework,
   createHomework,
   updateHomework,
   deleteHomework,
@@ -17,6 +18,14 @@ export const HOMEWORKS_QUERY_KEY = ['homeworks'];
 
 export function useHomeworks() {
   return useQuery({ queryKey: HOMEWORKS_QUERY_KEY, queryFn: getHomeworks });
+}
+
+export function useHomework(id: string | null) {
+  return useQuery({
+    queryKey: [...HOMEWORKS_QUERY_KEY, id],
+    queryFn: () => getHomework(id!),
+    enabled: !!id,
+  });
 }
 
 export function useCreateHomework() {
