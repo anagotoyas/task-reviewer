@@ -21,3 +21,18 @@ export async function createSubmission(payload: CreateSubmissionPayload): Promis
   const { data } = await apiClient.post<ApiResponse<Submission>>('/submissions', payload);
   return data.data;
 }
+
+export async function uploadVideo(
+  file: File,
+  onProgress?: (pct: number) => void,
+): Promise<string> {
+  const form = new FormData();
+  form.append('file', file);
+  const { data } = await apiClient.post<ApiResponse<{ url: string }>>('/upload/video', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: (e) => {
+      if (onProgress && e.total) onProgress(Math.round((e.loaded * 100) / e.total));
+    },
+  });
+  return data.data.url;
+}
