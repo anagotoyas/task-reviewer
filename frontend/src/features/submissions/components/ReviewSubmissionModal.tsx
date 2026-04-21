@@ -60,11 +60,16 @@ export function ReviewSubmissionModal({ submissionId, opened, onClose }: Props) 
     setEvals(
       criteria.map((c) => {
         const existing = submission.evaluations?.find((e) => e.criterionId === c.id);
+        const teacherAlreadyReviewed = submission.teacherReviewed || existing?.editedByTeacher;
         return {
           criterionId: c.id,
-          finalLevel: existing?.aiLevel ?? existing?.finalLevel ?? 'A',
-          finalReasoning: existing?.aiReasoning ?? existing?.finalReasoning ?? '',
-          editedByTeacher: false,
+          finalLevel: teacherAlreadyReviewed
+            ? (existing?.finalLevel ?? existing?.aiLevel ?? 'A')
+            : (existing?.aiLevel ?? existing?.finalLevel ?? 'A'),
+          finalReasoning: teacherAlreadyReviewed
+            ? (existing?.finalReasoning ?? existing?.aiReasoning ?? '')
+            : (existing?.aiReasoning ?? existing?.finalReasoning ?? ''),
+          editedByTeacher: existing?.editedByTeacher ?? false,
         };
       }),
     );
