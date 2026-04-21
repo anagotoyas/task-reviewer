@@ -4,6 +4,7 @@ import {
   getCourses,
   getTeachers,
   getStudents,
+  getCourseStudents,
   createCourse,
   updateCourse,
   deleteCourse,
@@ -28,6 +29,14 @@ export function useTeachers() {
 
 export function useStudents() {
   return useQuery({ queryKey: STUDENTS_QUERY_KEY, queryFn: getStudents });
+}
+
+export function useCourseStudents(courseId: string | null) {
+  return useQuery({
+    queryKey: ['courses', courseId, 'students'],
+    queryFn: () => getCourseStudents(courseId!),
+    enabled: !!courseId,
+  });
 }
 
 export function useCreateCourse() {

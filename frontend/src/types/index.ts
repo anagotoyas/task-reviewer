@@ -88,16 +88,27 @@ export interface CriterionEvaluation {
   criterion?: RubricCriterion;
 }
 
+export interface HomeworkGroupMember {
+  id: string;
+  groupId: string;
+  studentId: string;
+  student: User;
+}
+
+export interface HomeworkGroup {
+  id: string;
+  homeworkId: string;
+  name: string;
+  state: number;
+  members: HomeworkGroupMember[];
+}
+
 export interface ApiResponse<T> {
   statusCode: number;
   message: string;
   data: T;
 }
 
-export interface Role {
-  id: string;
-  name: 'admin' | 'teacher' | 'student';
-}
 export interface AuthUser {
   id: string;
   name: string;

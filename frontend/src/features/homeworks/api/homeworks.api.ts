@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api-client';
-import { ApiResponse, Homework } from '@/types';
+import { ApiResponse, Homework, HomeworkGroup } from '@/types';
 
 export interface CreateHomeworkPayload {
   courseId: string;
@@ -38,4 +38,19 @@ export async function updateHomework(id: string, payload: UpdateHomeworkPayload)
 
 export async function deleteHomework(id: string): Promise<void> {
   await apiClient.delete(`/homeworks/${id}`);
+}
+
+export interface CreateGroupPayload {
+  name: string;
+  studentIds: string[];
+}
+
+export async function getGroups(homeworkId: string): Promise<HomeworkGroup[]> {
+  const { data } = await apiClient.get<ApiResponse<HomeworkGroup[]>>(`/homeworks/${homeworkId}/groups`);
+  return data.data;
+}
+
+export async function createGroup(homeworkId: string, payload: CreateGroupPayload): Promise<HomeworkGroup> {
+  const { data } = await apiClient.post<ApiResponse<HomeworkGroup>>(`/homeworks/${homeworkId}/groups`, payload);
+  return data.data;
 }

@@ -21,9 +21,11 @@ import {
   IconSend,
   IconLock,
   IconFileText,
+  IconUsers,
 } from '@tabler/icons-react';
 import { useHomeworks, useDeleteHomework, useUpdateHomework } from '@/features/homeworks/hooks/useHomeworks';
 import { HomeworkFormModal } from '@/features/homeworks/components/HomeworkFormModal';
+import { GroupsModal } from '@/features/homeworks/components/GroupsModal';
 import { Homework, HomeworkStatus } from '@/types';
 
 const statusColor: Record<HomeworkStatus, string> = {
@@ -53,6 +55,8 @@ export function HomeworksPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editHomework, setEditHomework] = useState<Homework | null>(null);
+  const [groupsOpen, setGroupsOpen] = useState(false);
+  const [groupsHomework, setGroupsHomework] = useState<Homework | null>(null);
 
   const openCreate = () => {
     setEditHomework(null);
@@ -62,6 +66,11 @@ export function HomeworksPage() {
   const openEdit = (hw: Homework) => {
     setEditHomework(hw);
     setModalOpen(true);
+  };
+
+  const openGroups = (hw: Homework) => {
+    setGroupsHomework(hw);
+    setGroupsOpen(true);
   };
 
   const changeStatus = (hw: Homework, status: HomeworkStatus) => {
@@ -179,6 +188,13 @@ export function HomeworksPage() {
                 </Table.Td>
                 <Table.Td>
                   <Group gap="xs">
+                    {hw.isGroup && (
+                      <Tooltip label="Gestionar grupos">
+                        <ActionIcon variant="subtle" color="teal" onClick={() => openGroups(hw)}>
+                          <IconUsers size={16} />
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
                     <Tooltip label="Editar">
                       <ActionIcon variant="subtle" onClick={() => openEdit(hw)}>
                         <IconEdit size={16} />
@@ -206,6 +222,12 @@ export function HomeworksPage() {
         opened={modalOpen}
         onClose={() => setModalOpen(false)}
         editHomework={editHomework}
+      />
+
+      <GroupsModal
+        opened={groupsOpen}
+        onClose={() => setGroupsOpen(false)}
+        homework={groupsHomework}
       />
     </Stack>
   );

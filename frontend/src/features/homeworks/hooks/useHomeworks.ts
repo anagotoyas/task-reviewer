@@ -5,8 +5,11 @@ import {
   createHomework,
   updateHomework,
   deleteHomework,
+  getGroups,
+  createGroup,
   CreateHomeworkPayload,
   UpdateHomeworkPayload,
+  CreateGroupPayload,
 } from '@/features/homeworks/api/homeworks.api';
 import { getApiErrorMessage } from '@/lib/utils';
 
@@ -52,6 +55,32 @@ export function useDeleteHomework() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: HOMEWORKS_QUERY_KEY });
       notifications.show({ color: 'green', message: 'Tarea eliminada' });
+    },
+    onError: (error) => {
+      notifications.show({ color: 'red', title: 'Error', message: getApiErrorMessage(error) });
+    },
+  });
+}
+
+export function groupsQueryKey(homeworkId: string) {
+  return ['homeworks', homeworkId, 'groups'];
+}
+
+export function useGroups(homeworkId: string | null) {
+  return useQuery({
+    queryKey: groupsQueryKey(homeworkId ?? ''),
+    queryFn: () => getGroups(homeworkId!),
+    enabled: !!homeworkId,
+  });
+}
+
+export function useCreateGroup(homeworkId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateGroupPayload) => createGroup(homeworkId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: groupsQueryKey(homeworkId) });
+      notifications.show({ color: 'green', message: 'Grupo creado' });
     },
     onError: (error) => {
       notifications.show({ color: 'red', title: 'Error', message: getApiErrorMessage(error) });

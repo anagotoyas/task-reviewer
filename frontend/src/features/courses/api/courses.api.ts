@@ -1,6 +1,10 @@
 import { apiClient } from '@/lib/api-client';
 import { ApiResponse, Course, User } from '@/types';
 
+interface CourseDetail extends Course {
+  students: { student: User }[];
+}
+
 export interface CreateCoursePayload {
   name: string;
   teacherId: string;
@@ -46,4 +50,9 @@ export async function deleteCourse(id: string): Promise<void> {
 
 export async function assignStudents(courseId: string, payload: AssignStudentsPayload): Promise<void> {
   await apiClient.post(`/courses/${courseId}/students`, payload);
+}
+
+export async function getCourseStudents(courseId: string): Promise<User[]> {
+  const { data } = await apiClient.get<ApiResponse<CourseDetail>>(`/courses/${courseId}`);
+  return data.data.students.map((s) => s.student);
 }
