@@ -10,8 +10,8 @@ CREATE TABLE "role" (
     "name" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
-    "created_user" UUID,
-    "updated_user" UUID,
+    "created_user" TEXT,
+    "updated_user" TEXT,
     "state" INTEGER NOT NULL DEFAULT 1,
 
     CONSTRAINT "role_pkey" PRIMARY KEY ("id")
@@ -24,12 +24,12 @@ CREATE TABLE "user" (
     "lastname" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-    "role_id" UUID NOT NULL,
+    "role_id" TEXT NOT NULL,
     "hashed_refresh_token" TEXT,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ,
-    "created_user" UUID,
-    "updated_user" UUID,
+    "created_user" TEXT,
+    "updated_user" TEXT,
     "state" INTEGER NOT NULL DEFAULT 1,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
@@ -39,11 +39,11 @@ CREATE TABLE "user" (
 CREATE TABLE "course" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "teacher_id" UUID NOT NULL,
+    "teacher_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ,
-    "created_user" UUID,
-    "updated_user" UUID,
+    "created_user" TEXT,
+    "updated_user" TEXT,
     "state" INTEGER NOT NULL DEFAULT 1,
 
     CONSTRAINT "course_pkey" PRIMARY KEY ("id")
@@ -52,8 +52,8 @@ CREATE TABLE "course" (
 -- CreateTable
 CREATE TABLE "course_student" (
     "id" TEXT NOT NULL,
-    "course_id" UUID NOT NULL,
-    "student_id" UUID NOT NULL,
+    "course_id" TEXT NOT NULL,
+    "student_id" TEXT NOT NULL,
     "enrolled_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "state" INTEGER NOT NULL DEFAULT 1,
 
@@ -65,7 +65,7 @@ CREATE TABLE "rubric" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
-    "owner_id" UUID NOT NULL,
+    "owner_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ,
     "state" INTEGER NOT NULL DEFAULT 1,
@@ -76,7 +76,7 @@ CREATE TABLE "rubric" (
 -- CreateTable
 CREATE TABLE "rubric_criterion" (
     "id" TEXT NOT NULL,
-    "rubric_id" UUID NOT NULL,
+    "rubric_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "order_index" INTEGER NOT NULL,
@@ -88,7 +88,7 @@ CREATE TABLE "rubric_criterion" (
 -- CreateTable
 CREATE TABLE "rubric_criterion_level_descriptor" (
     "id" TEXT NOT NULL,
-    "criterion_id" UUID NOT NULL,
+    "criterion_id" TEXT NOT NULL,
     "level" "PerformanceLevel" NOT NULL,
     "description" TEXT NOT NULL,
 
@@ -98,8 +98,8 @@ CREATE TABLE "rubric_criterion_level_descriptor" (
 -- CreateTable
 CREATE TABLE "homework" (
     "id" TEXT NOT NULL,
-    "course_id" UUID NOT NULL,
-    "rubric_id" UUID NOT NULL,
+    "course_id" TEXT NOT NULL,
+    "rubric_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "is_group" BOOLEAN NOT NULL DEFAULT false,
@@ -108,8 +108,8 @@ CREATE TABLE "homework" (
     "status" "HomeworkStatus" NOT NULL DEFAULT 'draft',
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ,
-    "created_user" UUID,
-    "updated_user" UUID,
+    "created_user" TEXT,
+    "updated_user" TEXT,
     "state" INTEGER NOT NULL DEFAULT 1,
 
     CONSTRAINT "homework_pkey" PRIMARY KEY ("id")
@@ -118,7 +118,7 @@ CREATE TABLE "homework" (
 -- CreateTable
 CREATE TABLE "homework_group" (
     "id" TEXT NOT NULL,
-    "homework_id" UUID NOT NULL,
+    "homework_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "state" INTEGER NOT NULL DEFAULT 1,
@@ -129,8 +129,8 @@ CREATE TABLE "homework_group" (
 -- CreateTable
 CREATE TABLE "homework_group_member" (
     "id" TEXT NOT NULL,
-    "group_id" UUID NOT NULL,
-    "student_id" UUID NOT NULL,
+    "group_id" TEXT NOT NULL,
+    "student_id" TEXT NOT NULL,
 
     CONSTRAINT "homework_group_member_pkey" PRIMARY KEY ("id")
 );
@@ -138,9 +138,9 @@ CREATE TABLE "homework_group_member" (
 -- CreateTable
 CREATE TABLE "submission" (
     "id" TEXT NOT NULL,
-    "homework_id" UUID NOT NULL,
-    "student_id" UUID,
-    "group_id" UUID,
+    "homework_id" TEXT NOT NULL,
+    "student_id" TEXT,
+    "group_id" TEXT,
     "video_url" TEXT NOT NULL,
     "submitted_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "review_started_at" TIMESTAMPTZ,
@@ -156,8 +156,8 @@ CREATE TABLE "submission" (
 -- CreateTable
 CREATE TABLE "submission_criterion_evaluation" (
     "id" TEXT NOT NULL,
-    "submission_id" UUID NOT NULL,
-    "criterion_id" UUID NOT NULL,
+    "submission_id" TEXT NOT NULL,
+    "criterion_id" TEXT NOT NULL,
     "ai_level" "PerformanceLevel",
     "ai_reasoning" TEXT,
     "ai_generated_at" TIMESTAMPTZ,
@@ -185,7 +185,7 @@ CREATE UNIQUE INDEX "rubric_criterion_level_descriptor_criterion_id_level_key" O
 -- CreateIndex
 CREATE UNIQUE INDEX "homework_group_member_group_id_student_id_key" ON "homework_group_member"("group_id", "student_id");
 
--- CreateIndex
+-- UNIQUE INDEX "submission_criterion_evaluation_submission_id_criterion_id_key"
 CREATE UNIQUE INDEX "submission_criterion_evaluation_submission_id_criterion_id_key" ON "submission_criterion_evaluation"("submission_id", "criterion_id");
 
 -- AddForeignKey
