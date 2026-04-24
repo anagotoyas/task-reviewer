@@ -15,13 +15,13 @@ import { apiClient } from '@/lib/api-client';
 const adminLinks = [
   { label: 'Usuarios', icon: IconUsers, href: '/admin/users' },
   { label: 'Cursos', icon: IconSchool, href: '/admin/courses' },
+  { label: 'Dashboard', icon: IconLayoutDashboard, href: '/admin/analytics' },
 ];
 
 const teacherLinks = [
   { label: 'Mis cursos', icon: IconSchool, href: '/teacher/courses' },
   { label: 'Rúbricas', icon: IconBook, href: '/teacher/rubrics' },
   { label: 'Tareas', icon: IconClipboardList, href: '/teacher/homeworks' },
-  { label: 'Entregas', icon: IconVideo, href: '/teacher/submissions' },
 ];
 
 const studentLinks = [

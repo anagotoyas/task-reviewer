@@ -23,6 +23,13 @@ export async function getSubmissions(): Promise<Submission[]> {
   return data.data;
 }
 
+export async function getSubmissionsByHomework(homeworkId: string): Promise<Submission[]> {
+  const { data } = await apiClient.get<ApiResponse<Submission[]>>('/submissions', {
+    params: { homeworkId },
+  });
+  return data.data;
+}
+
 export async function getSubmission(id: string): Promise<Submission> {
   const { data } = await apiClient.get<ApiResponse<Submission>>(`/submissions/${id}`);
   return data.data;

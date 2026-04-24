@@ -47,8 +47,19 @@ export class SubmissionsService {
       if (!group) throw new NotFoundException('Group not found');
       const isMember = group.members.some((m) => m.studentId === studentId);
       if (!isMember) throw new ForbiddenException('You are not a member of this group');
+
+      const alreadySubmitted = await this.prisma.submission.findFirst({
+        where: { homeworkId: dto.homeworkId, groupId: group.id, state: 1 },
+      });
+      if (alreadySubmitted) throw new BadRequestException('This group has already submitted this homework');
+
       resolvedGroupId = group.id;
     } else {
+      const alreadySubmitted = await this.prisma.submission.findFirst({
+        where: { homeworkId: dto.homeworkId, studentId, state: 1 },
+      });
+      if (alreadySubmitted) throw new BadRequestException('You have already submitted this homework');
+
       resolvedStudentId = studentId;
     }
 
@@ -137,11 +148,25 @@ export class SubmissionsService {
     this.logger.log(`AI evaluation completed for submission ${submissionId}`);
   }
 
-  async findAll(user: { id: string; role: string }) {
+  async findAll(user: { id: string; role: string }, homeworkId?: string) {
     let where: any = { state: 1 };
 
     if (user.role === 'student') {
-      where.studentId = user.id;
+      // Include both individual submissions and group submissions where student is a member
+      const memberships = await this.prisma.homeworkGroupMember.findMany({
+        where: { studentId: user.id },
+        select: { groupId: true },
+      });
+      const groupIds = memberships.map((m) => m.groupId);
+
+      where = {
+        state: 1,
+        homework: { status: 'published', state: 1 },
+        OR: [
+          { studentId: user.id },
+          ...(groupIds.length > 0 ? [{ groupId: { in: groupIds } }] : []),
+        ],
+      };
     } else if (user.role === 'teacher') {
       const courses = await this.prisma.course.findMany({
         where: { teacherId: user.id, state: 1 },
@@ -154,12 +179,14 @@ export class SubmissionsService {
       where.homeworkId = { in: homeworks.map((h) => h.id) };
     }
 
+    if (homeworkId) where.homeworkId = homeworkId;
+
     const submissions = await this.prisma.submission.findMany({
       where,
       include: {
         homework: { include: { course: true } },
         student: true,
-        group: true,
+        group: { include: { members: { include: { student: true } } } },
         evaluations: { include: { criterion: true } },
       },
       orderBy: { submittedAt: 'desc' },

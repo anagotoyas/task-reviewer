@@ -207,9 +207,11 @@ export function ReviewSubmissionModal({ submissionId, opened, onClose }: Props) 
                           />
                           <Textarea
                             label="Justificación final"
+
                             value={ev.finalReasoning}
                             onChange={(e) => updateEval(c.id, 'finalReasoning', e.currentTarget.value)}
-                            minRows={2}
+                            minRows={3}
+                            resize="vertical"
                             size="sm"
                           />
                         </Stack>

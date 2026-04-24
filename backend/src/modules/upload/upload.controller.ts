@@ -18,7 +18,7 @@ export class UploadController {
   @Post('video')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 500 * 1024 * 1024 }, // 500 MB
+      limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB (Supabase free tier limit)
       fileFilter: (_, file, cb) => {
         if (!file.mimetype.startsWith('video/')) {
           return cb(

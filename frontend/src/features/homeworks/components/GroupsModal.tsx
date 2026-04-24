@@ -10,14 +10,17 @@ import {
   Divider,
   Paper,
   Badge,
-  ActionIcon,
-  Accordion,
   Loader,
   Center,
+  SimpleGrid,
+  Avatar,
+  ThemeIcon,
+  Alert,
+  Title,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
-import { Homework } from '@/types';
+import { IconPlus, IconUsers, IconUserOff, IconCheck, IconVideo } from '@tabler/icons-react';
+import { Homework, User } from '@/types';
 import { useGroups, useCreateGroup } from '@/features/homeworks/hooks/useHomeworks';
 import { useCourseStudents } from '@/features/courses/hooks/useCourses';
 
@@ -25,6 +28,20 @@ interface Props {
   opened: boolean;
   onClose: () => void;
   homework: Homework | null;
+}
+
+function StudentAvatar({ student }: { student: User }) {
+  return (
+    <Group gap="xs">
+      <Avatar color="blue" radius="xl" size="sm">
+        {student.name[0].toUpperCase()}
+      </Avatar>
+      <div>
+        <Text size="sm" fw={500}>{student.name} {student.lastname}</Text>
+        <Text size="xs" c="dimmed">{student.email}</Text>
+      </div>
+    </Group>
+  );
 }
 
 export function GroupsModal({ opened, onClose, homework }: Props) {
@@ -37,37 +54,33 @@ export function GroupsModal({ opened, onClose, homework }: Props) {
   const [creatingGroup, setCreatingGroup] = useState(false);
 
   const form = useForm({
-    initialValues: {
-      name: '',
-      studentIds: [] as string[],
-    },
+    initialValues: { name: '', studentIds: [] as string[] },
     validate: {
       name: (v) => (v.trim() ? null : 'Requerido'),
-      studentIds: (v) => (v.length >= 2 ? null : 'Mínimo 2 estudiantes por grupo'),
+      studentIds: (v) => (v.length >= 1 ? null : 'Selecciona al menos 1 estudiante'),
     },
   });
 
-  // IDs ya asignados a algún grupo
   const assignedStudentIds = new Set(
     groups?.flatMap((g) => g.members.map((m) => m.studentId)) ?? [],
   );
 
-  const availableStudents =
-    courseStudents
-      ?.filter((s) => !assignedStudentIds.has(s.id))
-      .map((s) => ({
-        value: s.id,
-        label: `${s.name} ${s.lastname}`,
-      })) ?? [];
+  const unassignedStudents = courseStudents?.filter((s) => !assignedStudentIds.has(s.id)) ?? [];
+
+  const availableOptions = unassignedStudents.map((s) => ({
+    value: s.id,
+    label: `${s.name} ${s.lastname}`,
+  }));
 
   const handleCreateGroup = (values: typeof form.values) => {
     createGroup.mutate(values, {
-      onSuccess: () => {
-        form.reset();
-        setCreatingGroup(false);
-      },
+      onSuccess: () => { form.reset(); setCreatingGroup(false); },
     });
   };
+
+  const isLoading = loadingGroups || loadingStudents;
+  const totalStudents = courseStudents?.length ?? 0;
+  const assignedCount = assignedStudentIds.size;
 
   return (
     <Modal
@@ -75,115 +88,169 @@ export function GroupsModal({ opened, onClose, homework }: Props) {
       onClose={onClose}
       title={
         <Stack gap={2}>
-          <Text fw={600}>Grupos — {homework?.name}</Text>
-          <Text size="xs" c="dimmed">Tarea grupal</Text>
+          <Title order={5}>Grupos — {homework?.name}</Title>
+          {!isLoading && (
+            <Text size="xs" c="dimmed">
+              {assignedCount} de {totalStudents} estudiantes asignados
+            </Text>
+          )}
         </Stack>
       }
-      centered
-      size="lg"
+      size="xl"
+      scrollAreaComponent={Modal.NativeScrollArea}
     >
-      <Stack gap="md">
-        {/* Lista de grupos existentes */}
-        {loadingGroups ? (
-          <Center py="md"><Loader size="sm" /></Center>
-        ) : groups?.length === 0 && !creatingGroup ? (
-          <Text size="sm" c="dimmed" ta="center" py="xs">
-            No hay grupos creados aún.
-          </Text>
-        ) : (
-          <Accordion variant="separated" radius="md">
-            {groups?.map((g) => (
-              <Accordion.Item key={g.id} value={g.id}>
-                <Accordion.Control>
-                  <Group justify="space-between" pr="sm">
-                    <Text fw={500}>{g.name}</Text>
-                    <Badge variant="light" color="blue" size="sm">
-                      {g.members.length} miembro{g.members.length !== 1 ? 's' : ''}
-                    </Badge>
-                  </Group>
-                </Accordion.Control>
-                <Accordion.Panel>
-                  <Stack gap="xs">
-                    {g.members.map((m) => (
-                      <Group key={m.id} gap="xs">
-                        <Text size="sm">
-                          {m.student.name} {m.student.lastname}
-                        </Text>
-                        <Text size="xs" c="dimmed">— {m.student.email}</Text>
-                      </Group>
-                    ))}
-                  </Stack>
-                </Accordion.Panel>
-              </Accordion.Item>
-            ))}
-          </Accordion>
-        )}
+      {isLoading ? (
+        <Center py="xl"><Loader /></Center>
+      ) : (
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg" style={{ alignItems: 'start' }}>
+          {/* Columna izquierda: grupos existentes */}
+          <Stack gap="sm">
+            <Text fw={600} size="sm">Grupos creados ({groups?.length ?? 0})</Text>
 
-        {/* Formulario nuevo grupo */}
-        {creatingGroup ? (
-          <>
-            <Divider label="Nuevo grupo" labelPosition="center" />
-            <Paper withBorder p="md" radius="md">
-              <form onSubmit={form.onSubmit(handleCreateGroup)}>
-                <Stack gap="sm">
-                  <TextInput
-                    label="Nombre del grupo"
-                    placeholder="Ej: Grupo A"
-                    {...form.getInputProps('name')}
-                  />
-                  <MultiSelect
-                    label="Estudiantes"
-                    placeholder={
-                      loadingStudents
-                        ? 'Cargando...'
-                        : availableStudents.length === 0
-                        ? 'No hay estudiantes disponibles'
-                        : 'Seleccionar estudiantes'
-                    }
-                    data={availableStudents}
-                    searchable
-                    hidePickedOptions
-                    disabled={loadingStudents || availableStudents.length === 0}
-                    {...form.getInputProps('studentIds')}
-                  />
-                  {availableStudents.length === 0 && !loadingStudents && (
-                    <Text size="xs" c="dimmed">
-                      Todos los estudiantes del curso ya están asignados a un grupo.
-                    </Text>
-                  )}
-                  <Group justify="flex-end">
-                    <Button
-                      variant="default"
-                      size="xs"
-                      leftSection={<IconTrash size={14} />}
-                      onClick={() => { form.reset(); setCreatingGroup(false); }}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      type="submit"
-                      size="xs"
-                      loading={createGroup.isPending}
-                      disabled={availableStudents.length === 0}
-                    >
-                      Crear grupo
-                    </Button>
-                  </Group>
+            {groups?.length === 0 ? (
+              <Text size="sm" c="dimmed" ta="center" py="md">
+                No hay grupos creados aún.
+              </Text>
+            ) : (
+              <Stack gap="sm">
+                {groups?.map((g) => (
+                  <Paper key={g.id} withBorder p="md" radius="md">
+                    <Stack gap="xs">
+                      <Group justify="space-between">
+                        <Group gap="xs">
+                          <ThemeIcon color="blue" variant="light" size="sm">
+                            <IconUsers size={14} />
+                          </ThemeIcon>
+                          <Text fw={600} size="sm">{g.name}</Text>
+                        </Group>
+                        <Group gap="xs">
+                          <Badge variant="light" color="blue" size="sm">
+                            {g.members.length} miembro{g.members.length !== 1 ? 's' : ''}
+                          </Badge>
+                          {g.hasSubmission && (
+                            <Badge
+                              variant="filled"
+                              color="green"
+                              size="sm"
+                              leftSection={<IconVideo size={10} />}
+                            >
+                              Entregó
+                            </Badge>
+                          )}
+                        </Group>
+                      </Group>
+                      <Divider />
+                      <Stack gap={6}>
+                        {g.members.map((m) => (
+                          <StudentAvatar key={m.id} student={m.student} />
+                        ))}
+                      </Stack>
+                    </Stack>
+                  </Paper>
+                ))}
+              </Stack>
+            )}
+
+            {/* Botón agregar grupo */}
+            {!creatingGroup && (
+              <Button
+                variant="light"
+                leftSection={<IconPlus size={16} />}
+                onClick={() => setCreatingGroup(true)}
+                disabled={unassignedStudents.length === 0}
+                mt="xs"
+              >
+                Nuevo grupo
+              </Button>
+            )}
+          </Stack>
+
+          {/* Columna derecha: sin asignar + formulario */}
+          <Stack gap="sm">
+            {/* Estudiantes sin asignar */}
+            <Text fw={600} size="sm">
+              Sin asignar ({unassignedStudents.length})
+            </Text>
+
+            {unassignedStudents.length === 0 ? (
+              <Paper withBorder p="md" radius="md" bg="green.0">
+                <Group gap="xs">
+                  <ThemeIcon color="green" variant="light" size="sm">
+                    <IconCheck size={14} />
+                  </ThemeIcon>
+                  <Text size="sm" c="green.7" fw={500}>
+                    Todos los estudiantes están asignados
+                  </Text>
+                </Group>
+              </Paper>
+            ) : (
+              <Paper withBorder p="sm" radius="md">
+                <Stack gap={8}>
+                  {unassignedStudents.map((s) => (
+                    <Group key={s.id} gap="xs">
+                      <ThemeIcon color="orange" variant="light" size="sm">
+                        <IconUserOff size={12} />
+                      </ThemeIcon>
+                      <div>
+                        <Text size="sm">{s.name} {s.lastname}</Text>
+                        <Text size="xs" c="dimmed">{s.email}</Text>
+                      </div>
+                    </Group>
+                  ))}
                 </Stack>
-              </form>
-            </Paper>
-          </>
-        ) : (
-          <Button
-            variant="light"
-            leftSection={<IconPlus size={16} />}
-            onClick={() => setCreatingGroup(true)}
-            disabled={availableStudents.length === 0 && !loadingStudents}
-          >
-            Agregar grupo
-          </Button>
-        )}
-      </Stack>
+              </Paper>
+            )}
+
+            {/* Formulario nuevo grupo */}
+            {creatingGroup && (
+              <>
+                <Divider label="Nuevo grupo" labelPosition="center" mt="xs" />
+                <Paper withBorder p="md" radius="md">
+                  <form onSubmit={form.onSubmit(handleCreateGroup)}>
+                    <Stack gap="sm">
+                      <TextInput
+                        label="Nombre del grupo"
+                        placeholder="Ej: Grupo A"
+                        {...form.getInputProps('name')}
+                      />
+                      <MultiSelect
+                        label="Estudiantes"
+                        placeholder="Seleccionar estudiantes"
+                        data={availableOptions}
+                        searchable
+                        hidePickedOptions
+                        {...form.getInputProps('studentIds')}
+                      />
+                      {availableOptions.length === 0 && (
+                        <Alert color="orange" p="xs">
+                          No quedan estudiantes disponibles.
+                        </Alert>
+                      )}
+                      <Group justify="flex-end" gap="xs">
+                        <Button
+                          variant="default"
+                          size="xs"
+                          onClick={() => { form.reset(); setCreatingGroup(false); }}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="submit"
+                          size="xs"
+                          loading={createGroup.isPending}
+                          disabled={availableOptions.length === 0}
+                        >
+                          Crear grupo
+                        </Button>
+                      </Group>
+                    </Stack>
+                  </form>
+                </Paper>
+              </>
+            )}
+          </Stack>
+        </SimpleGrid>
+      )}
     </Modal>
   );
 }

@@ -66,7 +66,7 @@ export function RubricViewDrawer({ homeworkId, opened, onClose }: Props) {
             <Paper key={criterion.id} withBorder p="md" radius="md">
               <Stack gap="sm">
                 <Group gap="xs">
-                  <Badge variant="outline" color="gray" size="sm">#{i + 1}</Badge>
+                  <Badge variant="outline" color="gray" size="sm" fullWidth>#{i + 1}</Badge>
                   <Text fw={500}>{criterion.name}</Text>
                 </Group>
                 {criterion.description && (

@@ -6,6 +6,7 @@ import { LoginPage } from '@/features/auth/pages/LoginPage';
 // Admin
 import { UsersPage } from '@/features/users/pages/UsersPage';
 import { CoursesPage } from '@/features/courses/pages/CoursesPage';
+import { AnalyticsPage } from '@/features/analytics/pages/AnalyticsPage';
 
 // Teacher
 import { RubricsPage } from '@/features/rubrics/pages/RubricsPage';
@@ -33,6 +34,7 @@ const router = createBrowserRouter([
       { index: true, element: <Navigate to="users" replace /> },
       { path: 'users', element: <UsersPage /> },
       { path: 'courses', element: <CoursesPage /> },
+      { path: 'analytics', element: <AnalyticsPage /> },
     ],
   },
   {
@@ -47,7 +49,6 @@ const router = createBrowserRouter([
       { path: 'courses', element: <CoursesPage /> },
       { path: 'rubrics', element: <RubricsPage /> },
       { path: 'homeworks', element: <HomeworksPage /> },
-      { path: 'submissions', element: <SubmissionsPage /> },
     ],
   },
   {

@@ -9,6 +9,7 @@ import { RubricsModule } from '@/modules/rubrics/rubrics.module';
 import { HomeworksModule } from '@/modules/homeworks/homeworks.module';
 import { SubmissionsModule } from '@/modules/submissions/submissions.module';
 import { UploadModule } from '@/modules/upload/upload.module';
+import { AnalyticsModule } from '@/modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { UploadModule } from '@/modules/upload/upload.module';
     HomeworksModule,
     SubmissionsModule,
     UploadModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

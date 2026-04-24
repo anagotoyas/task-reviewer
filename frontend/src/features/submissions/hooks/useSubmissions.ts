@@ -3,6 +3,7 @@ import { notifications } from '@mantine/notifications';
 import {
   getSubmissions,
   getSubmission,
+  getSubmissionsByHomework,
   createSubmission,
   startReview,
   reviewSubmission,
@@ -17,6 +18,14 @@ export const SUBMISSIONS_QUERY_KEY = ['submissions'];
 
 export function useSubmissions() {
   return useQuery({ queryKey: SUBMISSIONS_QUERY_KEY, queryFn: getSubmissions });
+}
+
+export function useSubmissionsByHomework(homeworkId: string | null) {
+  return useQuery({
+    queryKey: [...SUBMISSIONS_QUERY_KEY, 'homework', homeworkId],
+    queryFn: () => getSubmissionsByHomework(homeworkId!),
+    enabled: !!homeworkId,
+  });
 }
 
 export function useSubmission(id: string | null) {

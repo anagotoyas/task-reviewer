@@ -165,9 +165,18 @@ export class HomeworksService {
 
     const groups = await this.prisma.homeworkGroup.findMany({
       where: { homeworkId, state: 1 },
-      include: { members: { include: { student: true } } },
+      include: {
+        members: { include: { student: true } },
+        submissions: { where: { state: 1 }, select: { id: true } },
+      },
     });
 
-    return { message: 'Groups retrieved', data: groups };
+    const data = groups.map((g) => ({
+      ...g,
+      hasSubmission: g.submissions.length > 0,
+      submissions: undefined,
+    }));
+
+    return { message: 'Groups retrieved', data };
   }
 }

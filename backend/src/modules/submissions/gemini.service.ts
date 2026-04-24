@@ -33,21 +33,25 @@ export class GeminiService {
     this.logger.log(`Downloading video from Supabase...`);
 
     const response = await fetch(videoUrl);
-    if (!response.ok) throw new Error(`Failed to fetch video: ${response.statusText}`);
+    if (!response.ok)
+      throw new Error(`Failed to fetch video: ${response.statusText}`);
 
     const contentType = response.headers.get('content-type') ?? 'video/mp4';
     const mimeType = contentType.split(';')[0].trim();
     const buffer = await response.arrayBuffer();
     const blob = new Blob([buffer], { type: mimeType });
 
-    this.logger.log(`Uploading ${(blob.size / 1024 / 1024).toFixed(1)} MB to Gemini File API...`);
+    this.logger.log(
+      `Uploading ${(blob.size / 1024 / 1024).toFixed(1)} MB to Gemini File API...`,
+    );
 
     const uploaded = await this.ai.files.upload({
       file: blob,
       config: { mimeType, displayName: 'submission-video' },
     });
 
-    if (!uploaded.uri || !uploaded.name) throw new Error('Gemini File API did not return URI/name');
+    if (!uploaded.uri || !uploaded.name)
+      throw new Error('Gemini File API did not return URI/name');
 
     // Poll until ACTIVE (video processing may take several seconds)
     let file = uploaded;
@@ -69,7 +73,8 @@ export class GeminiService {
     rubricName: string,
     criteria: Criterion[],
   ): Promise<CriterionResult[]> {
-    const { fileUri, mimeType, fileName } = await this.uploadVideoFromUrl(videoUrl);
+    const { fileUri, mimeType, fileName } =
+      await this.uploadVideoFromUrl(videoUrl);
 
     // Use short numeric keys to avoid UUID truncation in Gemini responses
     const indexMap = new Map(criteria.map((c, i) => [String(i + 1), c]));
@@ -83,7 +88,7 @@ export class GeminiService {
       })
       .join('\n\n');
 
-    const prompt = `Actúa como un evaluador académico objetivo y transparente. Califica la siguiente tarea analizando el proceso de razonamiento del estudiante, no solo el resultado final. Justifica tu evaluación evitando sesgos y proporciona una retroalimentación detallada y orientada a la acción: señala las fortalezas, identifica los errores específicos explicando por qué ocurren, y recomienda recursos o pasos concretos para mejorar.
+    const prompt = `Actúa como un evaluador académico objetivo y transparente. Califica la siguiente tarea analizando el proceso de razonamiento del estudiante, no solo el resultado final. Justifica tu evaluación evitando sesgos y proporciona una retroalimentación detallada pero concisa y orientada a la acción: señala las fortalezas, identifica los errores específicos explicando por qué ocurren, y recomienda recursos o pasos concretos para mejorar.
 
 Analiza el video adjunto y evalúa el desempeño según la rúbrica "${rubricName}".
 
@@ -93,7 +98,7 @@ ${rubricText}
 INSTRUCCIONES:
 - Observa detenidamente el video completo.
 - Para cada criterio asigna exactamente uno de estos niveles: AD, A, B, o C.
-- Si el nivel asignado NO es AD (máximo), proporciona retroalimentación detallada: fortalezas observadas, errores específicos con su causa, y pasos concretos o recursos para mejorar.
+- Si el nivel asignado NO es AD (máximo), proporciona retroalimentación detallada pero concisa: fortalezas observadas, errores específicos con su causa, y pasos concretos o recursos para mejorar.
 - Si el nivel asignado ES AD, una justificación breve es suficiente.
 - Responde ÚNICAMENTE con un JSON válido, sin texto adicional, con este formato exacto:
 
@@ -101,7 +106,7 @@ INSTRUCCIONES:
   {
     "criterionIndex": "<número del criterio, ej: 1>",
     "level": "<AD|A|B|C>",
-    "reasoning": "<justificación detallada>"
+    "reasoning": "<justificación detallada pero concisa, especialmente si el nivel NO es AD>"
   }
 ]
 
@@ -114,10 +119,7 @@ ${criteria.map((c, i) => `- #${i + 1}: ${c.name}`).join('\n')}`;
         contents: [
           {
             role: 'user',
-            parts: [
-              { fileData: { mimeType, fileUri } },
-              { text: prompt },
-            ],
+            parts: [{ fileData: { mimeType, fileUri } }, { text: prompt }],
           },
         ],
       });
@@ -128,17 +130,23 @@ ${criteria.map((c, i) => `- #${i + 1}: ${c.name}`).join('\n')}`;
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('No JSON array found in Gemini response');
 
-      const parsed: { criterionIndex: string; level: string; reasoning: string }[] =
-        JSON.parse(jsonMatch[0]);
+      const parsed: {
+        criterionIndex: string;
+        level: string;
+        reasoning: string;
+      }[] = JSON.parse(jsonMatch[0]);
 
       const validLevels = new Set(['AD', 'A', 'B', 'C']);
       const results: CriterionResult[] = [];
 
       for (const item of parsed) {
         const criterion = indexMap.get(String(item.criterionIndex));
-        if (!criterion) throw new Error(`Unknown criterionIndex: ${item.criterionIndex}`);
+        if (!criterion)
+          throw new Error(`Unknown criterionIndex: ${item.criterionIndex}`);
         if (!validLevels.has(item.level))
-          throw new Error(`Invalid level "${item.level}" for criterion #${item.criterionIndex}`);
+          throw new Error(
+            `Invalid level "${item.level}" for criterion #${item.criterionIndex}`,
+          );
 
         results.push({
           criterionId: criterion.id,
@@ -151,7 +159,9 @@ ${criteria.map((c, i) => `- #${i + 1}: ${c.name}`).join('\n')}`;
       // Fill any missing criteria with fallback
       for (const [idx, criterion] of indexMap.entries()) {
         if (!results.find((r) => r.criterionId === criterion.id)) {
-          this.logger.warn(`Criterion #${idx} missing from Gemini response, defaulting to A`);
+          this.logger.warn(
+            `Criterion #${idx} missing from Gemini response, defaulting to A`,
+          );
           results.push({
             criterionId: criterion.id,
             criterionName: criterion.name,
@@ -164,9 +174,13 @@ ${criteria.map((c, i) => `- #${i + 1}: ${c.name}`).join('\n')}`;
       return results;
     } finally {
       // Always clean up the uploaded file from Gemini (48h TTL anyway, but good hygiene)
-      this.ai.files.delete({ name: fileName }).catch((e) =>
-        this.logger.warn(`Could not delete Gemini file ${fileName}: ${e.message}`),
-      );
+      this.ai.files
+        .delete({ name: fileName })
+        .catch((e) =>
+          this.logger.warn(
+            `Could not delete Gemini file ${fileName}: ${e.message}`,
+          ),
+        );
     }
   }
 }

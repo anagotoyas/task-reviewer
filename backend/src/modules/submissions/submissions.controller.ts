@@ -5,6 +5,7 @@ import {
   Patch,
   Body,
   Param,
+  Query,
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
@@ -28,8 +29,8 @@ export class SubmissionsController {
   }
 
   @Get()
-  findAll(@CurrentUser() user: any) {
-    return this.submissionsService.findAll(user);
+  findAll(@CurrentUser() user: any, @Query('homeworkId') homeworkId?: string) {
+    return this.submissionsService.findAll(user, homeworkId);
   }
 
   @Get(':id')

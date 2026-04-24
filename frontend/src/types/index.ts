@@ -108,6 +108,7 @@ export interface HomeworkGroup {
   name: string;
   state: number;
   members: HomeworkGroupMember[];
+  hasSubmission?: boolean;
 }
 
 export interface ApiResponse<T> {
