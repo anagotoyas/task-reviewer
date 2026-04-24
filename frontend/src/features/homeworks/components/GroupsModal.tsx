@@ -17,6 +17,7 @@ import {
   ThemeIcon,
   Alert,
   Title,
+  ScrollArea,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconPlus, IconUsers, IconUserOff, IconCheck, IconVideo } from '@tabler/icons-react';
@@ -97,7 +98,7 @@ export function GroupsModal({ opened, onClose, homework }: Props) {
         </Stack>
       }
       size="xl"
-      scrollAreaComponent={Modal.NativeScrollArea}
+      scrollAreaComponent={ScrollArea}
     >
       {isLoading ? (
         <Center py="xl"><Loader /></Center>

@@ -12,6 +12,7 @@ import {
   Table,
   Title,
   Center,
+  ScrollArea
 } from '@mantine/core';
 import { IconVideo, IconCheck, IconClock, IconEdit, IconRobot } from '@tabler/icons-react';
 import { useSubmissionsByHomework } from '@/features/submissions/hooks/useSubmissions';
@@ -56,7 +57,7 @@ export function HomeworkSubmissionsModal({ homework, opened, onClose }: Props) {
         }
         size="90%"
         styles={{ content: { maxWidth: 1100, margin: '0 auto' } }}
-        scrollAreaComponent={Modal.NativeScrollArea}
+        scrollAreaComponent={ScrollArea}
       >
         {isLoading ? (
           <Stack gap="xs">
