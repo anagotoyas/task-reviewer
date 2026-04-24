@@ -1,9 +1,8 @@
 import { AppShell, Burger, Group, Title, ActionIcon, useMantineColorScheme } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconSun, IconMoon } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconBrandYoutube } from '@tabler/icons-react';
 import { Outlet } from 'react-router-dom';
 import { NavbarContent } from './NavbarContent';
-import classes from './AppLayout.module.css';
 
 export function AppLayout() {
   const [opened, { toggle }] = useDisclosure();
@@ -19,7 +18,10 @@ export function AppLayout() {
         <Group h="100%" px="md" justify="space-between">
           <Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-            <Title order={4} className={classes.brand}>MySpace</Title>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#15aabf' }}>
+              <IconBrandYoutube size="1.5rem" />
+              <Title order={4} styles={{ root: { color: '#15aabf' } }}>MySpace</Title>
+            </div>
           </Group>
           <ActionIcon
             variant="subtle"

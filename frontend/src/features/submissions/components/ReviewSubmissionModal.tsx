@@ -114,7 +114,6 @@ export function ReviewSubmissionModal({ submissionId, opened, onClose }: Props) 
       title={<Title order={5}>Revisar entrega</Title>}
       size="100%"
       styles={{ body: { padding: '1rem' }, content: { maxWidth: '1400px', margin: '0 auto' } }}
-      scrollAreaComponent={Modal.NativeScrollArea}
     >
       {isLoading || !submission ? (
         <Center py="xl">

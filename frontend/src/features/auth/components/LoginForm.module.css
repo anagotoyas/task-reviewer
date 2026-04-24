@@ -8,3 +8,28 @@
   max-width: 420px;
   padding: var(--mantine-spacing-xl);
 }
+
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.imageWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #B8DDE6;
+}
+
+.imageWrapper img {
+  max-width: 100%;
+  max-height: 400px
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}

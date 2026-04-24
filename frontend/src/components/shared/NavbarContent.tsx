@@ -39,8 +39,8 @@ export function NavbarContent() {
     user?.role.name === 'admin'
       ? adminLinks
       : user?.role.name === 'teacher'
-      ? teacherLinks
-      : studentLinks;
+        ? teacherLinks
+        : studentLinks;
 
   const handleLogout = async () => {
     try {
@@ -67,7 +67,7 @@ export function NavbarContent() {
 
       <Stack gap="xs">
         <Group gap="sm" p="xs">
-          <Avatar color="violet" radius="xl">
+          <Avatar color="cyan" radius="xl">
             {user?.name?.[0]?.toUpperCase()}
           </Avatar>
           <Stack gap={0} style={{ flex: 1, overflow: 'hidden' }}>
