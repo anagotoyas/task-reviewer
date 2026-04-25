@@ -33,3 +33,17 @@
   justify-content: center;
   gap: 4px;
 }
+
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+
+  .imageWrapper {
+    display: none;
+  }
+
+  .wrapper {
+    min-height: 100vh;
+  }
+}
