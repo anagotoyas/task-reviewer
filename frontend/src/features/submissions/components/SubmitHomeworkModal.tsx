@@ -121,9 +121,8 @@ export function SubmitHomeworkModal({ opened, onClose, homework }: Props) {
         {/* Grupo detectado automáticamente */}
         {homework?.isGroup && (
           <>
-            {loadingGroups ? (
-              <Center py="xs"><Loader size="sm" /></Center>
-            ) : myGroup ? (
+            {loadingGroups && <Center py="xs"><Loader size="sm" /></Center>}
+            {!loadingGroups && myGroup && (
               <Paper withBorder p="sm" radius="md" bg="blue.0">
                 <Group gap="xs">
                   <ThemeIcon color="blue" variant="light" size="sm">
@@ -140,7 +139,8 @@ export function SubmitHomeworkModal({ opened, onClose, homework }: Props) {
                   </Badge>
                 </Group>
               </Paper>
-            ) : (
+            )}
+            {!loadingGroups && !myGroup && (
               <Alert icon={<IconAlertCircle size={16} />} color="orange" title="Sin grupo asignado">
                 No estás asignado a ningún grupo para esta tarea. Contacta a tu docente.
               </Alert>

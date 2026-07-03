@@ -12,9 +12,9 @@ import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService,
-    private configService: ConfigService,
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async login(dto: LoginDto) {
@@ -55,7 +55,7 @@ export class AuthService {
       include: { role: true },
     });
 
-    if (!user || !user.hashedRefreshToken)
+    if (!user?.hashedRefreshToken)
       throw new ForbiddenException('Access denied');
 
     const tokenMatch = await bcrypt.compare(

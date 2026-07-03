@@ -11,7 +11,7 @@ import { CreateGroupDto } from './dto/create-group.dto';
 
 @Injectable()
 export class HomeworksService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateHomeworkDto, actorId: string) {
     const course = await this.prisma.course.findFirst({

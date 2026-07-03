@@ -10,7 +10,7 @@ import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateUserDto, actorId: string) {
     const existing = await this.prisma.user.findFirst({

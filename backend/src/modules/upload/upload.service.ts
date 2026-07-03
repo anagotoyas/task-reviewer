@@ -6,9 +6,9 @@ const BUCKET = 'videos';
 
 @Injectable()
 export class UploadService {
-  private supabase;
+  private readonly supabase;
 
-  constructor(private config: ConfigService) {
+  constructor(private readonly config: ConfigService) {
     this.supabase = createClient(
       this.config.get<string>('SUPABASE_URL')!,
       this.config.get<string>('SUPABASE_KEY')!,
@@ -17,7 +17,8 @@ export class UploadService {
 
   async uploadVideo(file: any): Promise<string> {
     const ext = file.originalname.split('.').pop();
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const uniquePart = crypto.randomUUID().replace(/-/g, '');
+    const filename = `${Date.now()}-${uniquePart}.${ext}`;
     const path = `submissions/${filename}`;
 
     const { error } = await this.supabase.storage

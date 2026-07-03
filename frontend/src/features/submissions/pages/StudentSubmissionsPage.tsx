@@ -73,15 +73,17 @@ export function StudentSubmissionsPage() {
 
         {/* TAB: tareas pendientes */}
         <Tabs.Panel value="pending" pt="md">
-          {loadingHw ? (
+          {loadingHw && (
             <Stack gap="xs">
-              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} height={48} radius="sm" />)}
+              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={`sk-${i}`} height={48} radius="sm" />)}
             </Stack>
-          ) : pendingHomeworks.length === 0 ? (
+          )}
+          {!loadingHw && pendingHomeworks.length === 0 && (
             <Text c="dimmed" size="sm" ta="center" py="md">
               No tienes tareas pendientes de entrega.
             </Text>
-          ) : (
+          )}
+          {!loadingHw && pendingHomeworks.length > 0 && (
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>
                 <Table.Tr>
@@ -138,15 +140,17 @@ export function StudentSubmissionsPage() {
 
         {/* TAB: entregas realizadas */}
         <Tabs.Panel value="submitted" pt="md">
-          {loadingSubs ? (
+          {loadingSubs && (
             <Stack gap="xs">
-              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} height={48} radius="sm" />)}
+              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={`sk-${i}`} height={48} radius="sm" />)}
             </Stack>
-          ) : mySubmissions.length === 0 ? (
+          )}
+          {!loadingSubs && mySubmissions.length === 0 && (
             <Text c="dimmed" size="sm" ta="center" py="md">
               Aún no has realizado ninguna entrega.
             </Text>
-          ) : (
+          )}
+          {!loadingSubs && mySubmissions.length > 0 && (
             <Table striped highlightOnHover withTableBorder withColumnBorders>
               <Table.Thead>
                 <Table.Tr>

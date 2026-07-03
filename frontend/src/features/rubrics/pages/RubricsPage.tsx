@@ -96,19 +96,21 @@ export function RubricsPage() {
         </Button>
       </Group>
 
-      {isLoading ? (
+      {isLoading && (
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} height={140} radius="md" />
+            <Skeleton key={`sk-${i}`} height={140} radius="md" />
           ))}
         </SimpleGrid>
-      ) : rubrics?.length === 0 ? (
+      )}
+      {!isLoading && rubrics?.length === 0 && (
         <Paper withBorder p="xl" radius="md" ta="center">
           <Text c="dimmed" size="sm">
             Aún no tienes rúbricas. Crea tu primera rúbrica.
           </Text>
         </Paper>
-      ) : (
+      )}
+      {!isLoading && (rubrics?.length ?? 0) > 0 && (
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
           {rubrics?.map((rubric) => (
             <Paper key={rubric.id} withBorder p="md" radius="md">

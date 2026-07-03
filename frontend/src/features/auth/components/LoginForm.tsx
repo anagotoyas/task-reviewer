@@ -12,7 +12,7 @@ export function LoginForm() {
   const form = useForm({
     initialValues: { email: '', password: '' },
     validate: {
-      email: (v) => (/^\S+@\S+$/.test(v) ? null : 'Email inválido'),
+      email: (v) => (/^\S+@\S+/.test(v) ? null : 'Email inválido'),
       password: (v) => (v.length >= 6 ? null : 'Mínimo 6 caracteres'),
     },
   });

@@ -18,10 +18,11 @@ async function main() {
 
   // Seed admin user from env
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@myspace.com';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'Admin1234!';
+  const adminPassword = process.env.ADMIN_PASSWORD;
   const adminName = process.env.ADMIN_NAME || 'Super';
   const adminLastname = process.env.ADMIN_LASTNAME || 'Admin';
 
+  if (!adminPassword) throw new Error('ADMIN_PASSWORD env variable is required');
   const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
   await prisma.user.upsert({

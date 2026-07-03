@@ -38,17 +38,19 @@ export function SubmissionsPage() {
     <Stack gap="lg">
       <Title order={3}>Entregas recibidas</Title>
 
-      {isLoading ? (
+      {isLoading && (
         <Stack gap="xs">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} height={48} radius="sm" />
+            <Skeleton key={`sk-${i}`} height={48} radius="sm" />
           ))}
         </Stack>
-      ) : submissions?.length === 0 ? (
+      )}
+      {!isLoading && submissions?.length === 0 && (
         <Text c="dimmed" size="sm" ta="center" py="md">
           No hay entregas registradas aún.
         </Text>
-      ) : (
+      )}
+      {!isLoading && (submissions?.length ?? 0) > 0 && (
         <Table striped highlightOnHover withTableBorder withColumnBorders>
           <Table.Thead>
             <Table.Tr>

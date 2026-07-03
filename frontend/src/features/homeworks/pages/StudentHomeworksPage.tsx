@@ -32,7 +32,7 @@ export function StudentHomeworksPage() {
       {isLoading ? (
         <Stack gap="xs">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} height={48} radius="sm" />
+            <Skeleton key={`sk-${i}`} height={48} radius="sm" />
           ))}
         </Stack>
       ) : (

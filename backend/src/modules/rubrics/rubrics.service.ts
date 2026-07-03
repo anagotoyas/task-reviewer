@@ -9,7 +9,7 @@ import { UpdateRubricDto } from './dto/update-rubric.dto';
 
 @Injectable()
 export class RubricsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateRubricDto, ownerId: string) {
     const rubric = await this.prisma.rubric.create({

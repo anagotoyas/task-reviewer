@@ -35,12 +35,11 @@ export function NavbarContent() {
   const location = useLocation();
   const { user, logout } = useAuthStore();
 
+  const roleName = user?.role.name;
   const links =
-    user?.role.name === 'admin'
-      ? adminLinks
-      : user?.role.name === 'teacher'
-        ? teacherLinks
-        : studentLinks;
+    roleName === 'admin' ? adminLinks :
+    roleName === 'teacher' ? teacherLinks :
+    studentLinks;
 
   const handleLogout = async () => {
     try {

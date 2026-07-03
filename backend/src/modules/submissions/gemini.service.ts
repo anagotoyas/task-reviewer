@@ -19,9 +19,9 @@ interface Criterion {
 @Injectable()
 export class GeminiService {
   private readonly logger = new Logger(GeminiService.name);
-  private ai: GoogleGenAI;
+  private readonly ai: GoogleGenAI;
 
-  constructor(private config: ConfigService) {
+  constructor(private readonly config: ConfigService) {
     this.ai = new GoogleGenAI({
       apiKey: this.config.get<string>('GEMINI_API_KEY')!,
     });
@@ -84,7 +84,8 @@ export class GeminiService {
         const levels = c.levelDescriptors
           .map((ld) => `    - ${ld.level}: ${ld.description}`)
           .join('\n');
-        return `Criterio #${i + 1}: "${c.name}"${c.description ? ` (${c.description})` : ''}\n  Niveles:\n${levels}`;
+        const optionalDesc = c.description ? ` (${c.description})` : '';
+        return `Criterio #${i + 1}: "${c.name}"${optionalDesc}\n  Niveles:\n${levels}`;
       })
       .join('\n\n');
 
@@ -113,6 +114,7 @@ INSTRUCCIONES:
 CRITERIOS A EVALUAR:
 ${criteria.map((c, i) => `- #${i + 1}: ${c.name}`).join('\n')}`;
 
+
     try {
       const response = await this.ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -127,7 +129,7 @@ ${criteria.map((c, i) => `- #${i + 1}: ${c.name}`).join('\n')}`;
       const text = response.text ?? '';
       this.logger.debug(`Gemini raw response: ${text}`);
 
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      const jsonMatch = text.match(/\[[^]*\]/);
       if (!jsonMatch) throw new Error('No JSON array found in Gemini response');
 
       const parsed: {

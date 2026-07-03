@@ -59,17 +59,19 @@ export function HomeworkSubmissionsModal({ homework, opened, onClose }: Props) {
         styles={{ content: { maxWidth: 1100, margin: '0 auto' } }}
         scrollAreaComponent={ScrollArea}
       >
-        {isLoading ? (
+        {isLoading && (
           <Stack gap="xs">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} height={48} radius="sm" />
+              <Skeleton key={`sk-${i}`} height={48} radius="sm" />
             ))}
           </Stack>
-        ) : submissions?.length === 0 ? (
+        )}
+        {!isLoading && submissions?.length === 0 && (
           <Center py="xl">
             <Text c="dimmed" size="sm">No hay entregas para esta tarea aún.</Text>
           </Center>
-        ) : (
+        )}
+        {!isLoading && (submissions?.length ?? 0) > 0 && (
           <Table striped highlightOnHover withTableBorder withColumnBorders>
             <Table.Thead>
               <Table.Tr>
@@ -166,6 +168,7 @@ export function HomeworkSubmissionsModal({ homework, opened, onClose }: Props) {
           </Table>
         )}
       </Modal>
+
 
       <ReviewSubmissionModal
         submissionId={reviewId}

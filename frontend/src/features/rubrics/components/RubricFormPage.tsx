@@ -138,6 +138,17 @@ function buildEmptyCriterion(): CriterionFormValues {
   };
 }
 
+function mapCriterionToFormValues(c: Rubric['criteria'][number]): CriterionFormValues {
+  return {
+    name: c.name,
+    description: c.description ?? '',
+    levelDescriptors: LEVELS.map((level) => {
+      const existing = c.levelDescriptors.find((ld) => ld.level === level);
+      return { level, description: existing?.description ?? '' };
+    }),
+  };
+}
+
 interface Props {
   editRubric?: Rubric | null;
   onSubmit: (payload: CreateRubricPayload) => void;
@@ -171,14 +182,7 @@ export function RubricFormPage({ editRubric, onSubmit, onCancel, isPending }: Pr
         criteria: editRubric.criteria
           .slice()
           .sort((a, b) => a.orderIndex - b.orderIndex)
-          .map((c) => ({
-            name: c.name,
-            description: c.description ?? '',
-            levelDescriptors: LEVELS.map((level) => {
-              const existing = c.levelDescriptors.find((ld) => ld.level === level);
-              return { level, description: existing?.description ?? '' };
-            }),
-          })),
+          .map(mapCriterionToFormValues),
       });
     } else {
       form.reset();
@@ -255,7 +259,7 @@ export function RubricFormPage({ editRubric, onSubmit, onCancel, isPending }: Pr
 
           {form.values.criteria.map((_, criterionIndex) => (
             <CriterionCard
-              key={criterionIndex}
+              key={`criterion-${criterionIndex}`}
               criterionIndex={criterionIndex}
               canRemove={form.values.criteria.length > 1}
               onRemove={() => removeCriterion(criterionIndex)}

@@ -29,7 +29,7 @@ export function UserFormModal({ opened, onClose, editUser }: Props) {
     validate: {
       name: (v) => (v.trim() ? null : 'Requerido'),
       lastname: (v) => (v.trim() ? null : 'Requerido'),
-      email: (v) => (/^\S+@\S+$/.test(v) ? null : 'Email inválido'),
+      email: (v) => (/^\S+@\S+/.test(v) ? null : 'Email inválido'),
       password: (v) => (!isEdit && v.length < 6 ? 'Mínimo 6 caracteres' : null),
       roleId: (v) => (v ? null : 'Selecciona un rol'),
     },
@@ -49,11 +49,9 @@ export function UserFormModal({ opened, onClose, editUser }: Props) {
     }
   }, [editUser, opened]);
 
+  const roleDisplayName: Record<string, string> = { admin: 'Admin', teacher: 'Docente', student: 'Estudiante' };
   const roleOptions =
-    roles?.map((r) => ({
-      value: r.id,
-      label: r.name === 'admin' ? 'Admin' : r.name === 'teacher' ? 'Docente' : 'Estudiante',
-    })) ?? [];
+    roles?.map((r) => ({ value: r.id, label: roleDisplayName[r.name] ?? r.name })) ?? [];
 
   const handleSubmit = (values: typeof form.values) => {
     if (isEdit) {

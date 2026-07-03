@@ -11,7 +11,7 @@ import { AssignStudentsDto } from './dto/assign-students.dto';
 
 @Injectable()
 export class CoursesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateCourseDto, actorId: string) {
     const teacher = await this.prisma.user.findFirst({

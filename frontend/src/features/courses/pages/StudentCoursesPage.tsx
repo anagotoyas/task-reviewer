@@ -18,17 +18,19 @@ export function StudentCoursesPage() {
     <Stack gap="lg">
       <Title order={3}>Mis cursos</Title>
 
-      {isLoading ? (
+      {isLoading && (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }}>
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} height={180} radius="md" />
+            <Skeleton key={`sk-${i}`} height={180} radius="md" />
           ))}
         </SimpleGrid>
-      ) : courses?.length === 0 ? (
+      )}
+      {!isLoading && courses?.length === 0 && (
         <Text c="dimmed" size="sm" ta="center" py="xl">
           No estás inscrito en ningún curso.
         </Text>
-      ) : (
+      )}
+      {!isLoading && (courses?.length ?? 0) > 0 && (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }}>
           {courses?.map((course) => {
             const color = COLORS[hashIndex(course.id, COLORS.length)];
@@ -56,3 +58,4 @@ export function StudentCoursesPage() {
     </Stack>
   );
 }
+

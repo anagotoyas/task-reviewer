@@ -99,7 +99,7 @@ function exportToExcel(
     ['Tiempo máximo', formatDuration(stats.summary.maxDurationSeconds)],
     [],
     ['CONCORDANCIA IA vs DOCENTE'],
-    ['Total evaluaciones con IA', stats.summary?.totalEvaluations],
+    ['Total evaluaciones con IA', stats.summary.totalEvaluations],
     ['Aceptadas por el docente', stats.summary.agreedCount],
     ['Modificadas por el docente', stats.summary.editedCount],
     ['Tasa de concordancia', `${stats.summary.agreementRate}%`],
@@ -130,6 +130,12 @@ function exportToExcel(
     ]),
   ];
   downloadCsv(toCsv(breakdownRows), `${prefix}_entregas.csv`);
+}
+
+function editRateColor(rate: number): string {
+  if (rate > 50) return 'red';
+  if (rate > 25) return 'orange';
+  return 'green';
 }
 
 export function AnalyticsPage() {
@@ -195,11 +201,12 @@ export function AnalyticsPage() {
         </Group>
       </Paper>
 
-      {loadingStats ? (
+      {loadingStats && (
         <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }}>
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} height={80} radius="md" />)}
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={`sk-${i}`} height={80} radius="md" />)}
         </SimpleGrid>
-      ) : !stats || !stats.summary ? null : (
+      )}
+      {!loadingStats && stats?.summary && (
         <Stack gap="xl">
           {/* KPIs */}
           <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }}>
@@ -304,7 +311,7 @@ export function AnalyticsPage() {
                         <Group gap="xs">
                           <Text size="xs" c="dimmed">{c.edited}/{c.total}</Text>
                           <Badge
-                            color={c.editRate > 50 ? 'red' : c.editRate > 25 ? 'orange' : 'green'}
+                            color={editRateColor(c.editRate)}
                             variant="light"
                             size="sm"
                           >
@@ -312,7 +319,7 @@ export function AnalyticsPage() {
                           </Badge>
                         </Group>
                       </Group>
-                      <Progress value={c.editRate} color={c.editRate > 50 ? 'red' : c.editRate > 25 ? 'orange' : 'green'} size="sm" />
+                      <Progress value={c.editRate} color={editRateColor(c.editRate)} size="sm" />
                     </div>
                   ))}
               </Stack>
@@ -347,7 +354,7 @@ export function AnalyticsPage() {
                       ? Math.round((s.editedCriteria / s.totalCriteria) * 100)
                       : 0;
                     return (
-                      <Table.Tr key={i}>
+                      <Table.Tr key={`row-${i}`}>
                         <Table.Td><Text size="sm" fw={500}>{s.homeworkName}</Text></Table.Td>
                         <Table.Td><Text size="sm" c="dimmed">{s.courseName}</Text></Table.Td>
                         <Table.Td><Text size="sm">{formatDuration(s.durationSeconds)}</Text></Table.Td>
@@ -355,7 +362,7 @@ export function AnalyticsPage() {
                         <Table.Td><Text size="sm">{s.editedCriteria}</Text></Table.Td>
                         <Table.Td>
                           <Badge
-                            color={editPct > 50 ? 'red' : editPct > 25 ? 'orange' : 'green'}
+                            color={editRateColor(editPct)}
                             variant="light"
                             size="sm"
                           >

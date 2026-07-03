@@ -15,8 +15,8 @@ export class SubmissionsService {
   private readonly logger = new Logger(SubmissionsService.name);
 
   constructor(
-    private prisma: PrismaService,
-    private gemini: GeminiService,
+    private readonly prisma: PrismaService,
+    private readonly gemini: GeminiService,
   ) {}
 
   async create(dto: CreateSubmissionDto, studentId: string) {
