@@ -41,7 +41,7 @@ const ICONS = [IconBook, IconSchool, IconAtom, IconMath, IconMicroscope, IconGlo
 
 function hashIndex(str: string, len: number) {
   let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + (str.codePointAt(i) ?? 0)) >>> 0;
   return h % len;
 }
 

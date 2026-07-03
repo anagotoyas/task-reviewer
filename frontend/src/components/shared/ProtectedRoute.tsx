@@ -2,8 +2,8 @@ import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 
 interface Props {
-  children: React.ReactNode;
-  allowedRoles?: Array<'admin' | 'teacher' | 'student'>;
+  readonly children: React.ReactNode;
+  readonly allowedRoles?: Array<'admin' | 'teacher' | 'student'>;
 }
 
 export function ProtectedRoute({ children, allowedRoles }: Props) {

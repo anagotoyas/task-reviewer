@@ -11,8 +11,6 @@ import { AnalyticsPage } from '@/features/analytics/pages/AnalyticsPage';
 // Teacher
 import { RubricsPage } from '@/features/rubrics/pages/RubricsPage';
 import { HomeworksPage } from '@/features/homeworks/pages/HomeworksPage';
-import { SubmissionsPage } from '@/features/submissions/pages/SubmissionsPage';
-
 // Student
 import { StudentCoursesPage } from '@/features/courses/pages/StudentCoursesPage';
 import { StudentHomeworksPage } from '@/features/homeworks/pages/StudentHomeworksPage';

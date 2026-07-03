@@ -23,9 +23,9 @@ import { PerformanceLevel, RubricCriterion } from '@/types';
 import { CriterionEvaluationPayload } from '../api/submissions.api';
 
 interface Props {
-  submissionId: string | null;
-  opened: boolean;
-  onClose: () => void;
+  readonly submissionId: string | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
 }
 
 const levelColor: Record<string, string> = { AD: 'violet', A: 'blue', B: 'yellow', C: 'red' };
@@ -132,7 +132,9 @@ export function ReviewSubmissionModal({ submissionId, opened, onClose }: Props) 
                 src={submission.videoUrl}
                 controls
                 style={{ width: '100%', height: '100%', borderRadius: 8, background: '#000' }}
-              />
+              >
+                <track kind="captions" />
+              </video>
             </AspectRatio>
 
             {!submission.aiEvaluatedAt && (
@@ -165,11 +167,7 @@ export function ReviewSubmissionModal({ submissionId, opened, onClose }: Props) 
           <Stack gap="md">
             <Divider label="Evaluación por criterio" labelPosition="center" />
 
-            {!started ? (
-              <Button onClick={handleStart} loading={startReview.isPending} fullWidth>
-                Iniciar revisión
-              </Button>
-            ) : (
+            {started ? (
               <>
                 <Stack gap="md" style={{ maxHeight: '65vh', overflowY: 'auto', paddingRight: 4 }}>
                   {criteria.map((c) => {
@@ -228,6 +226,10 @@ export function ReviewSubmissionModal({ submissionId, opened, onClose }: Props) 
                   Publicar revisión
                 </Button>
               </>
+            ) : (
+              <Button onClick={handleStart} loading={startReview.isPending} fullWidth>
+                Iniciar revisión
+              </Button>
             )}
           </Stack>
         </SimpleGrid>

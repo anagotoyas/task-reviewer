@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api-client';
-import { ApiResponse, AuthUser, AuthTokens } from '@/types';
+import { ApiResponse, AuthUser } from '@/types';
 
 interface LoginPayload {
   email: string;

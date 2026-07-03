@@ -21,8 +21,8 @@ import { CreateRubricPayload } from '@/features/rubrics/api/rubrics.api';
 const LEVELS = ['AD', 'A', 'B', 'C'] as const;
 
 interface LevelDescriptorRowProps {
-  level: (typeof LEVELS)[number];
-  inputProps: ReturnType<ReturnType<typeof useForm>['getInputProps']>;
+  readonly level: (typeof LEVELS)[number];
+  readonly inputProps: ReturnType<ReturnType<typeof useForm>['getInputProps']>;
 }
 
 function LevelDescriptorRow({ level, inputProps }: LevelDescriptorRowProps) {
@@ -44,10 +44,10 @@ function LevelDescriptorRow({ level, inputProps }: LevelDescriptorRowProps) {
 }
 
 interface CriterionCardProps {
-  criterionIndex: number;
-  canRemove: boolean;
-  onRemove: () => void;
-  getInputProps: ReturnType<typeof useForm>['getInputProps'];
+  readonly criterionIndex: number;
+  readonly canRemove: boolean;
+  readonly onRemove: () => void;
+  readonly getInputProps: ReturnType<typeof useForm>['getInputProps'];
 }
 
 function CriterionCard({ criterionIndex, canRemove, onRemove, getInputProps }: CriterionCardProps) {
@@ -150,10 +150,10 @@ function mapCriterionToFormValues(c: Rubric['criteria'][number]): CriterionFormV
 }
 
 interface Props {
-  editRubric?: Rubric | null;
-  onSubmit: (payload: CreateRubricPayload) => void;
-  onCancel: () => void;
-  isPending: boolean;
+  readonly editRubric?: Rubric | null;
+  readonly onSubmit: (payload: CreateRubricPayload) => void;
+  readonly onCancel: () => void;
+  readonly isPending: boolean;
 }
 
 export function RubricFormPage({ editRubric, onSubmit, onCancel, isPending }: Props) {

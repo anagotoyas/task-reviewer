@@ -30,9 +30,9 @@ const levelLabel: Record<string, string> = {
 };
 
 interface Props {
-  homeworkId: string | null;
-  opened: boolean;
-  onClose: () => void;
+  readonly homeworkId: string | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
 }
 
 export function RubricViewDrawer({ homeworkId, opened, onClose }: Props) {

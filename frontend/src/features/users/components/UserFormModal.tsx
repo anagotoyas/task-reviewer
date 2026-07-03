@@ -5,9 +5,9 @@ import { useRoles, useCreateUser, useUpdateUser } from '@/features/users/hooks/u
 import { User } from '@/types';
 
 interface Props {
-  opened: boolean;
-  onClose: () => void;
-  editUser?: User | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
+  readonly editUser?: User | null;
 }
 
 export function UserFormModal({ opened, onClose, editUser }: Props) {

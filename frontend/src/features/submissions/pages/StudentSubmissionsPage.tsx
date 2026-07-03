@@ -6,7 +6,6 @@ import {
   Text,
   Badge,
   Group,
-  Button,
   ActionIcon,
   Tooltip,
   Skeleton,

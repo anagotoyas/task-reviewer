@@ -17,9 +17,9 @@ import { useCreateHomework, useUpdateHomework } from '@/features/homeworks/hooks
 import { Homework } from '@/types';
 
 interface Props {
-  opened: boolean;
-  onClose: () => void;
-  editHomework?: Homework | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
+  readonly editHomework?: Homework | null;
 }
 
 export function HomeworkFormModal({ opened, onClose, editHomework }: Props) {

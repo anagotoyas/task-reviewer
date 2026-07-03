@@ -32,9 +32,9 @@ import { getApiErrorMessage } from '@/lib/utils';
 import { notifications } from '@mantine/notifications';
 
 interface Props {
-  opened: boolean;
-  onClose: () => void;
-  homework: Homework | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
+  readonly homework: Homework | null;
 }
 
 export function SubmitHomeworkModal({ opened, onClose, homework }: Props) {
@@ -159,23 +159,7 @@ export function SubmitHomeworkModal({ opened, onClose, homework }: Props) {
               onChange={handleFileChange}
             />
 
-            {!videoFile ? (
-              <Paper
-                withBorder
-                p="xl"
-                radius="md"
-                style={{ cursor: 'pointer', borderStyle: 'dashed' }}
-                onClick={() => inputRef.current?.click()}
-              >
-                <Stack align="center" gap="xs">
-                  <ThemeIcon size="xl" variant="light" color="blue">
-                    <IconUpload size={24} />
-                  </ThemeIcon>
-                  <Text size="sm" fw={500}>Haz clic para seleccionar tu video</Text>
-                  <Text size="xs" c="dimmed">MP4, MOV, AVI, MKV — máx. 50 MB</Text>
-                </Stack>
-              </Paper>
-            ) : (
+            {videoFile ? (
               <Paper withBorder p="md" radius="md">
                 <Group justify="space-between" align="flex-start">
                   <Group gap="sm">
@@ -216,6 +200,22 @@ export function SubmitHomeworkModal({ opened, onClose, homework }: Props) {
                     <Text size="xs" c="green">Video subido correctamente</Text>
                   </Group>
                 )}
+              </Paper>
+            ) : (
+              <Paper
+                withBorder
+                p="xl"
+                radius="md"
+                style={{ cursor: 'pointer', borderStyle: 'dashed' }}
+                onClick={() => inputRef.current?.click()}
+              >
+                <Stack align="center" gap="xs">
+                  <ThemeIcon size="xl" variant="light" color="blue">
+                    <IconUpload size={24} />
+                  </ThemeIcon>
+                  <Text size="sm" fw={500}>Haz clic para seleccionar tu video</Text>
+                  <Text size="xs" c="dimmed">MP4, MOV, AVI, MKV — máx. 50 MB</Text>
+                </Stack>
               </Paper>
             )}
 

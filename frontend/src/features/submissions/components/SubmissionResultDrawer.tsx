@@ -17,9 +17,9 @@ import { useSubmission } from '../hooks/useSubmissions';
 import { PerformanceLevel } from '@/types';
 
 interface Props {
-  submissionId: string | null;
-  opened: boolean;
-  onClose: () => void;
+  readonly submissionId: string | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
 }
 
 const levelColor: Record<string, string> = {

@@ -17,20 +17,20 @@ async function main() {
     allowedMimeTypes: ['video/*'],
   };
 
-  if (!exists) {
-    const { error } = await supabase.storage.createBucket('videos', BUCKET_OPTIONS);
-    if (error) {
-      console.error('Error creating bucket:', error.message);
-      process.exit(1);
-    }
-    console.log('Bucket "videos" created successfully');
-  } else {
+  if (exists) {
     const { error } = await supabase.storage.updateBucket('videos', BUCKET_OPTIONS);
     if (error) {
       console.error('Error updating bucket:', error.message);
       process.exit(1);
     }
     console.log('Bucket "videos" updated (250 MB limit, video/* only)');
+  } else {
+    const { error } = await supabase.storage.createBucket('videos', BUCKET_OPTIONS);
+    if (error) {
+      console.error('Error creating bucket:', error.message);
+      process.exit(1);
+    }
+    console.log('Bucket "videos" created successfully');
   }
 }
 

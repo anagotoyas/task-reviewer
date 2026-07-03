@@ -26,12 +26,12 @@ import { useGroups, useCreateGroup } from '@/features/homeworks/hooks/useHomewor
 import { useCourseStudents } from '@/features/courses/hooks/useCourses';
 
 interface Props {
-  opened: boolean;
-  onClose: () => void;
-  homework: Homework | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
+  readonly homework: Homework | null;
 }
 
-function StudentAvatar({ student }: { student: User }) {
+function StudentAvatar({ student }: { readonly student: User }) {
   return (
     <Group gap="xs">
       <Avatar color="blue" radius="xl" size="sm">
@@ -90,7 +90,7 @@ export function GroupsModal({ opened, onClose, homework }: Props) {
       title={
         <Stack gap={2}>
           <Title order={5}>Grupos — {homework?.name}</Title>
-          {!isLoading && (
+          {isLoading ? null : (
             <Text size="xs" c="dimmed">
               {assignedCount} de {totalStudents} estudiantes asignados
             </Text>

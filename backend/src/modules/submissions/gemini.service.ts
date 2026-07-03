@@ -160,7 +160,7 @@ ${criteria.map((c, i) => `- #${i + 1}: ${c.name}`).join('\n')}`;
 
       // Fill any missing criteria with fallback
       for (const [idx, criterion] of indexMap.entries()) {
-        if (!results.find((r) => r.criterionId === criterion.id)) {
+        if (!results.some((r) => r.criterionId === criterion.id)) {
           this.logger.warn(
             `Criterion #${idx} missing from Gemini response, defaulting to A`,
           );

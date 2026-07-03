@@ -44,10 +44,10 @@ function StatCard({
   icon,
   color = 'blue',
 }: {
-  label: string;
-  value: string | number;
-  icon: React.ReactNode;
-  color?: string;
+  readonly label: string;
+  readonly value: string | number;
+  readonly icon: React.ReactNode;
+  readonly color?: string;
 }) {
   return (
     <Paper withBorder p="md" radius="md">

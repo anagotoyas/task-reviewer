@@ -28,9 +28,9 @@ const levelLabel: Record<string, string> = {
 const LEVELS = ['AD', 'A', 'B', 'C'];
 
 interface Props {
-  rubric: Rubric | null;
-  opened: boolean;
-  onClose: () => void;
+  readonly rubric: Rubric | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
 }
 
 export function RubricDetailDrawer({ rubric, opened, onClose }: Props) {

@@ -20,9 +20,9 @@ import { ReviewSubmissionModal } from './ReviewSubmissionModal';
 import { Homework } from '@/types';
 
 interface Props {
-  homework: Homework | null;
-  opened: boolean;
-  onClose: () => void;
+  readonly homework: Homework | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
 }
 
 const levelColor: Record<string, string> = {

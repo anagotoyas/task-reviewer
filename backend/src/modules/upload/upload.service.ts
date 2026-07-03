@@ -17,7 +17,7 @@ export class UploadService {
 
   async uploadVideo(file: any): Promise<string> {
     const ext = file.originalname.split('.').pop();
-    const uniquePart = crypto.randomUUID().replace(/-/g, '');
+    const uniquePart = crypto.randomUUID().replaceAll('-', '');
     const filename = `${Date.now()}-${uniquePart}.${ext}`;
     const path = `submissions/${filename}`;
 

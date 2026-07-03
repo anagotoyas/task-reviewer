@@ -5,9 +5,9 @@ import { useTeachers, useCreateCourse, useUpdateCourse } from '@/features/course
 import { Course } from '@/types';
 
 interface Props {
-  opened: boolean;
-  onClose: () => void;
-  editCourse?: Course | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
+  readonly editCourse?: Course | null;
 }
 
 export function CourseFormModal({ opened, onClose, editCourse }: Props) {

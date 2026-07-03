@@ -4,9 +4,9 @@ import { useStudents, useAssignStudents } from '@/features/courses/hooks/useCour
 import { Course } from '@/types';
 
 interface Props {
-  opened: boolean;
-  onClose: () => void;
-  course: Course | null;
+  readonly opened: boolean;
+  readonly onClose: () => void;
+  readonly course: Course | null;
 }
 
 export function AssignStudentsModal({ opened, onClose, course }: Props) {
