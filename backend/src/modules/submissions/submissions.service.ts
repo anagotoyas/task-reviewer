@@ -31,37 +31,11 @@ export class SubmissionsService {
     });
     if (!enrolled) throw new ForbiddenException('Not enrolled in this course');
 
-    if (homework.isGroup && !dto.groupId)
-      throw new BadRequestException('Group homework requires a groupId');
-    if (!homework.isGroup && dto.groupId)
-      throw new BadRequestException('Individual homework does not accept a groupId');
-
-    let resolvedStudentId: string | null = null;
-    let resolvedGroupId: string | null = null;
-
-    if (homework.isGroup) {
-      const group = await this.prisma.homeworkGroup.findFirst({
-        where: { id: dto.groupId, homeworkId: dto.homeworkId, state: 1 },
-        include: { members: true },
-      });
-      if (!group) throw new NotFoundException('Group not found');
-      const isMember = group.members.some((m) => m.studentId === studentId);
-      if (!isMember) throw new ForbiddenException('You are not a member of this group');
-
-      const alreadySubmitted = await this.prisma.submission.findFirst({
-        where: { homeworkId: dto.homeworkId, groupId: group.id, state: 1 },
-      });
-      if (alreadySubmitted) throw new BadRequestException('This group has already submitted this homework');
-
-      resolvedGroupId = group.id;
-    } else {
-      const alreadySubmitted = await this.prisma.submission.findFirst({
-        where: { homeworkId: dto.homeworkId, studentId, state: 1 },
-      });
-      if (alreadySubmitted) throw new BadRequestException('You have already submitted this homework');
-
-      resolvedStudentId = studentId;
-    }
+    const { resolvedStudentId, resolvedGroupId } = await this.resolveSubmitter(
+      dto,
+      homework.isGroup,
+      studentId,
+    );
 
     const submission = await this.prisma.submission.create({
       data: {
@@ -79,6 +53,40 @@ export class SubmissionsService {
     );
 
     return { message: 'Submission created', data: submission };
+  }
+
+  private async resolveSubmitter(
+    dto: CreateSubmissionDto,
+    isGroup: boolean,
+    studentId: string,
+  ): Promise<{ resolvedStudentId: string | null; resolvedGroupId: string | null }> {
+    if (isGroup && !dto.groupId)
+      throw new BadRequestException('Group homework requires a groupId');
+    if (!isGroup && dto.groupId)
+      throw new BadRequestException('Individual homework does not accept a groupId');
+
+    if (!isGroup) {
+      const alreadySubmitted = await this.prisma.submission.findFirst({
+        where: { homeworkId: dto.homeworkId, studentId, state: 1 },
+      });
+      if (alreadySubmitted) throw new BadRequestException('You have already submitted this homework');
+      return { resolvedStudentId: studentId, resolvedGroupId: null };
+    }
+
+    const group = await this.prisma.homeworkGroup.findFirst({
+      where: { id: dto.groupId, homeworkId: dto.homeworkId, state: 1 },
+      include: { members: true },
+    });
+    if (!group) throw new NotFoundException('Group not found');
+    if (!group.members.some((m) => m.studentId === studentId))
+      throw new ForbiddenException('You are not a member of this group');
+
+    const alreadySubmitted = await this.prisma.submission.findFirst({
+      where: { homeworkId: dto.homeworkId, groupId: group.id, state: 1 },
+    });
+    if (alreadySubmitted) throw new BadRequestException('This group has already submitted this homework');
+
+    return { resolvedStudentId: null, resolvedGroupId: group.id };
   }
 
   async runAiEvaluation(submissionId: string): Promise<void> {

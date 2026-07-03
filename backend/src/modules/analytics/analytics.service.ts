@@ -24,18 +24,7 @@ export class AnalyticsService {
   }
 
   async getStats(courseId?: string, homeworkId?: string) {
-    // Build submission filter
-    const submissionWhere: any = { state: 1, teacherReviewed: true };
-
-    if (homeworkId) {
-      submissionWhere.homeworkId = homeworkId;
-    } else if (courseId) {
-      const homeworks = await this.prisma.homework.findMany({
-        where: { courseId, state: 1 },
-        select: { id: true },
-      });
-      submissionWhere.homeworkId = { in: homeworks.map((h) => h.id) };
-    }
+    const submissionWhere = await this.buildSubmissionFilter(courseId, homeworkId);
 
     const submissions = await this.prisma.submission.findMany({
       where: submissionWhere,
@@ -56,7 +45,6 @@ export class AnalyticsService {
       },
     });
 
-    // --- Review duration stats ---
     const durationsWithData = submissions.filter(
       (s) => s.reviewDurationSeconds != null && s.reviewDurationSeconds > 0,
     );
@@ -69,52 +57,20 @@ export class AnalyticsService {
           )
         : 0;
 
-    const minDuration = durationsWithData.length > 0
-      ? Math.min(...durationsWithData.map((s) => s.reviewDurationSeconds!))
-      : 0;
+    const durations = durationsWithData.map((s) => s.reviewDurationSeconds!);
+    const minDuration = durations.length > 0 ? Math.min(...durations) : 0;
+    const maxDuration = durations.length > 0 ? Math.max(...durations) : 0;
 
-    const maxDuration = durationsWithData.length > 0
-      ? Math.max(...durationsWithData.map((s) => s.reviewDurationSeconds!))
-      : 0;
-
-    // --- AI vs Teacher comparison ---
-    const allEvals = submissions.flatMap((s) => s.evaluations);
-    const evalsWithAi = allEvals.filter((e) => e.aiLevel != null);
+    const evalsWithAi = submissions.flatMap((s) => s.evaluations).filter((e) => e.aiLevel != null);
 
     const totalWithAi = evalsWithAi.length;
     const editedCount = evalsWithAi.filter((e) => e.editedByTeacher).length;
-    const agreedCount = evalsWithAi.filter((e) => !e.editedByTeacher).length;
+    const agreedCount = totalWithAi - editedCount;
     const agreementRate = totalWithAi > 0 ? Math.round((agreedCount / totalWithAi) * 100) : 0;
 
-    // Level distribution comparison: AI vs Final
-    const levelOrder = ['AD', 'A', 'B', 'C'];
-    const aiLevelDist = Object.fromEntries(levelOrder.map((l) => [l, 0]));
-    const finalLevelDist = Object.fromEntries(levelOrder.map((l) => [l, 0]));
+    const { aiLevelDist, finalLevelDist } = this.buildLevelDists(evalsWithAi);
+    const criterionEditRates = this.buildCriterionEditRates(evalsWithAi);
 
-    for (const ev of evalsWithAi) {
-      if (ev.aiLevel) aiLevelDist[ev.aiLevel]++;
-      if (ev.finalLevel) finalLevelDist[ev.finalLevel]++;
-    }
-
-    // Per-criterion edit rate
-    const criterionMap = new Map<string, { name: string; total: number; edited: number }>();
-    for (const ev of evalsWithAi) {
-      const name = ev.criterion?.name ?? 'Desconocido';
-      const key = name;
-      if (!criterionMap.has(key)) criterionMap.set(key, { name, total: 0, edited: 0 });
-      const entry = criterionMap.get(key)!;
-      entry.total++;
-      if (ev.editedByTeacher) entry.edited++;
-    }
-
-    const criterionEditRates = Array.from(criterionMap.values()).map((c) => ({
-      criterionName: c.name,
-      total: c.total,
-      edited: c.edited,
-      editRate: c.total > 0 ? Math.round((c.edited / c.total) * 100) : 0,
-    }));
-
-    // Per-submission duration breakdown (for table)
     const submissionBreakdown = submissions
       .filter((s) => s.reviewDurationSeconds != null)
       .map((s) => ({
@@ -139,13 +95,56 @@ export class AnalyticsService {
           agreedCount,
           agreementRate,
         },
-        aiVsFinal: {
-          aiLevelDist,
-          finalLevelDist,
-        },
+        aiVsFinal: { aiLevelDist, finalLevelDist },
         criterionEditRates,
         submissionBreakdown,
       },
     };
+  }
+
+  private async buildSubmissionFilter(courseId?: string, homeworkId?: string) {
+    const where: any = { state: 1, teacherReviewed: true };
+    if (homeworkId) {
+      where.homeworkId = homeworkId;
+      return where;
+    }
+    if (courseId) {
+      const homeworks = await this.prisma.homework.findMany({
+        where: { courseId, state: 1 },
+        select: { id: true },
+      });
+      where.homeworkId = { in: homeworks.map((h) => h.id) };
+    }
+    return where;
+  }
+
+  private buildLevelDists(evalsWithAi: { aiLevel: string | null; finalLevel: string | null }[]) {
+    const levelOrder = ['AD', 'A', 'B', 'C'];
+    const aiLevelDist = Object.fromEntries(levelOrder.map((l) => [l, 0]));
+    const finalLevelDist = Object.fromEntries(levelOrder.map((l) => [l, 0]));
+    for (const ev of evalsWithAi) {
+      if (ev.aiLevel) aiLevelDist[ev.aiLevel]++;
+      if (ev.finalLevel) finalLevelDist[ev.finalLevel]++;
+    }
+    return { aiLevelDist, finalLevelDist };
+  }
+
+  private buildCriterionEditRates(
+    evalsWithAi: { editedByTeacher: boolean; criterion: { name: string } | null }[],
+  ) {
+    const criterionMap = new Map<string, { name: string; total: number; edited: number }>();
+    for (const ev of evalsWithAi) {
+      const name = ev.criterion?.name ?? 'Desconocido';
+      if (!criterionMap.has(name)) criterionMap.set(name, { name, total: 0, edited: 0 });
+      const entry = criterionMap.get(name)!;
+      entry.total++;
+      if (ev.editedByTeacher) entry.edited++;
+    }
+    return Array.from(criterionMap.values()).map((c) => ({
+      criterionName: c.name,
+      total: c.total,
+      edited: c.edited,
+      editRate: c.total > 0 ? Math.round((c.edited / c.total) * 100) : 0,
+    }));
   }
 }

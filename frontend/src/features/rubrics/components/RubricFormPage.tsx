@@ -20,6 +20,87 @@ import { CreateRubricPayload } from '@/features/rubrics/api/rubrics.api';
 
 const LEVELS = ['AD', 'A', 'B', 'C'] as const;
 
+interface LevelDescriptorRowProps {
+  level: (typeof LEVELS)[number];
+  inputProps: ReturnType<ReturnType<typeof useForm>['getInputProps']>;
+}
+
+function LevelDescriptorRow({ level, inputProps }: LevelDescriptorRowProps) {
+  return (
+    <Group align="flex-start" gap="sm">
+      <Badge color={levelColor[level]} variant="filled" w={40} mt={26} style={{ flexShrink: 0 }}>
+        {level}
+      </Badge>
+      <Box style={{ flex: 1 }}>
+        <Textarea
+          label={levelLabel[level]}
+          placeholder={`Describe el desempeño nivel ${level}`}
+          rows={2}
+          {...inputProps}
+        />
+      </Box>
+    </Group>
+  );
+}
+
+interface CriterionCardProps {
+  criterionIndex: number;
+  canRemove: boolean;
+  onRemove: () => void;
+  getInputProps: ReturnType<typeof useForm>['getInputProps'];
+}
+
+function CriterionCard({ criterionIndex, canRemove, onRemove, getInputProps }: CriterionCardProps) {
+  return (
+    <Paper withBorder p="md" radius="md">
+      <Stack gap="md">
+        <Group justify="space-between" align="flex-start">
+          <Group gap="xs" style={{ flex: 1 }}>
+            <IconGripVertical size={16} color="gray" />
+            <Box style={{ flex: 1 }}>
+              <TextInput
+                placeholder={`Criterio ${criterionIndex + 1} — Ej: Claridad de exposición`}
+                label="Nombre del criterio"
+                {...getInputProps(`criteria.${criterionIndex}.name`)}
+              />
+            </Box>
+          </Group>
+          <ActionIcon
+            variant="subtle"
+            color="red"
+            mt={24}
+            onClick={onRemove}
+            disabled={!canRemove}
+          >
+            <IconTrash size={16} />
+          </ActionIcon>
+        </Group>
+
+        <Textarea
+          label="Descripción del criterio (opcional)"
+          placeholder="Describe qué se evalúa con este criterio"
+          rows={2}
+          {...getInputProps(`criteria.${criterionIndex}.description`)}
+        />
+
+        <Divider label="Descriptores de nivel" labelPosition="left" />
+
+        <Stack gap="xs">
+          {LEVELS.map((level, levelIndex) => (
+            <LevelDescriptorRow
+              key={level}
+              level={level}
+              inputProps={getInputProps(
+                `criteria.${criterionIndex}.levelDescriptors.${levelIndex}.description`,
+              )}
+            />
+          ))}
+        </Stack>
+      </Stack>
+    </Paper>
+  );
+}
+
 const levelColor: Record<string, string> = {
   AD: 'violet',
   A: 'blue',
@@ -173,71 +254,13 @@ export function RubricFormPage({ editRubric, onSubmit, onCancel, isPending }: Pr
           </Group>
 
           {form.values.criteria.map((_, criterionIndex) => (
-            <Paper
+            <CriterionCard
               key={criterionIndex}
-              withBorder
-              p="md"
-              radius="md"
-            >
-              <Stack gap="md">
-                <Group justify="space-between" align="flex-start">
-                  <Group gap="xs" style={{ flex: 1 }}>
-                    <IconGripVertical size={16} color="gray" />
-                    <Box style={{ flex: 1 }}>
-                      <TextInput
-                        placeholder={`Criterio ${criterionIndex + 1} — Ej: Claridad de exposición`}
-                        label="Nombre del criterio"
-                        {...form.getInputProps(`criteria.${criterionIndex}.name`)}
-                      />
-                    </Box>
-                  </Group>
-                  <ActionIcon
-                    variant="subtle"
-                    color="red"
-                    mt={24}
-                    onClick={() => removeCriterion(criterionIndex)}
-                    disabled={form.values.criteria.length === 1}
-                  >
-                    <IconTrash size={16} />
-                  </ActionIcon>
-                </Group>
-
-                <Textarea
-                  label="Descripción del criterio (opcional)"
-                  placeholder="Describe qué se evalúa con este criterio"
-                  rows={2}
-                  {...form.getInputProps(`criteria.${criterionIndex}.description`)}
-                />
-
-                <Divider label="Descriptores de nivel" labelPosition="left" />
-
-                <Stack gap="xs">
-                  {LEVELS.map((level, levelIndex) => (
-                    <Group key={level} align="flex-start" gap="sm">
-                      <Badge
-                        color={levelColor[level]}
-                        variant="filled"
-                        w={40}
-                        mt={26}
-                        style={{ flexShrink: 0 }}
-                      >
-                        {level}
-                      </Badge>
-                      <Box style={{ flex: 1 }}>
-                        <Textarea
-                          label={levelLabel[level]}
-                          placeholder={`Describe el desempeño nivel ${level}`}
-                          rows={2}
-                          {...form.getInputProps(
-                            `criteria.${criterionIndex}.levelDescriptors.${levelIndex}.description`,
-                          )}
-                        />
-                      </Box>
-                    </Group>
-                  ))}
-                </Stack>
-              </Stack>
-            </Paper>
+              criterionIndex={criterionIndex}
+              canRemove={form.values.criteria.length > 1}
+              onRemove={() => removeCriterion(criterionIndex)}
+              getInputProps={form.getInputProps}
+            />
           ))}
         </Stack>
 
