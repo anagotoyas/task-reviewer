@@ -117,6 +117,7 @@ export class AnalyticsService {
     }
     return where;
   }
+  
 
   private buildLevelDists(evalsWithAi: { aiLevel: string | null; finalLevel: string | null }[]) {
     const levelOrder = ['AD', 'A', 'B', 'C'];
