@@ -78,7 +78,7 @@ export function RubricViewDrawer({ homeworkId, opened, onClose }: Props) {
                     const descriptor = criterion.levelDescriptors.find((ld) => ld.level === level);
                     return (
                       <Group key={level} align="flex-start" gap="sm">
-                        <Badge color={levelColor[level]} variant="filled" w={36} style={{ flexShrink: 0 }}>
+                        <Badge color={levelColor[level]} variant="filled" w={40} style={{ flexShrink: 0 }}>
                           {level}
                         </Badge>
                         <Stack gap={0} style={{ flex: 1 }}>
